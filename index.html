@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>โปรแกรมจำลองการเขียนโปรแกรมควบคุมหุ่นยนต์ระดับกลาง สพฐ.2026 โดยสมาร์โรโบติกส์</title>
+    <title>โปรแกรมจำลองควบคุมหุ่นยนต์ สพฐ.2026 (รวมโหมด) โดยสมาร์โรโบติกส์</title>
     <!-- เรียกใช้งาน Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- เรียกใช้งาน Phosphor Icons -->
@@ -73,6 +73,8 @@
         
         .score-bump { animation: bump 0.3s ease-out; }
         @keyframes bump { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #10b981; } 100% { transform: scale(1); } }
+        
+        .manual-btn:active { transform: scale(0.9); }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col" data-theme="day">
@@ -84,9 +86,29 @@
                 <i class="ph-fill ph-robot text-6xl"></i>
             </div>
             <div>
-                <h1 class="text-xl sm:text-2xl font-bold text-slate-800 leading-snug">โปรแกรมจำลองการเขียนโปรแกรมควบคุมหุ่นยนต์ระดับกลาง สพฐ.2026</h1>
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-800 leading-snug">โปรแกรมจำลองการเขียนโปรแกรมควบคุมหุ่นยนต์ สพฐ.2026</h1>
                 <p class="text-blue-600 font-bold mt-1 text-sm">โดย สมาร์โรโบติกส์</p>
                 <p class="text-slate-500 mt-4 text-sm">เข้าสู่ระบบเพื่อออกแบบและจำลองสนามแข่งขัน</p>
+                
+                <div class="mt-4 flex flex-wrap justify-center gap-2">
+                    <div class="inline-flex items-center gap-2 bg-blue-50/80 border border-blue-200 px-3 py-1.5 rounded-full text-blue-700 text-sm shadow-sm transition-all hover:bg-blue-100" title="จำนวนสมาชิกที่ลงทะเบียนในระบบ">
+                        <i class="ph-fill ph-users text-lg"></i>
+                        <span class="font-medium">สมาชิก: <span id="landing-user-count" class="font-bold text-base text-blue-800">...</span></span>
+                    </div>
+                    <div class="inline-flex items-center gap-2 bg-green-50/80 border border-green-200 px-3 py-1.5 rounded-full text-green-700 text-sm shadow-sm transition-all hover:bg-green-100" title="จำนวนผู้กำลังใช้งานขณะนี้">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="font-medium">ออนไลน์: <span id="landing-online-counter" class="font-bold text-base text-green-800">...</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ปุ่มเลือกโหมดเริ่มต้น -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mt-2">
+                <p class="text-xs text-slate-500 font-bold mb-2">เลือกโหมดสนามที่ต้องการใช้งาน:</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="setAppMode('normal')" id="btn-mode-select-normal" class="py-2 bg-blue-100 text-blue-700 border-2 border-blue-500 font-bold rounded-lg text-sm transition shadow-sm ring-2 ring-blue-200">ระดับกลาง (ออโต้)</button>
+                    <button onclick="setAppMode('mixed')" id="btn-mode-select-mixed" class="py-2 bg-white text-slate-600 border border-slate-300 font-bold rounded-lg text-sm transition hover:bg-slate-100">ระดับผสม (บังคับมือ)</button>
+                </div>
             </div>
             
             <div class="flex flex-col gap-3 mt-2">
@@ -115,38 +137,46 @@
     <div id="app-wrapper" class="hidden flex-col flex-grow w-full">
         <!-- แถบด้านบน (Header) -->
         <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 py-3 flex flex-col xl:flex-row items-center justify-between sticky top-0 z-10 shadow-sm no-print gap-4">
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0 flex flex-col xl:flex-row items-center gap-4 md:gap-6 w-full xl:w-auto justify-center xl:justify-start">
                 <h1 class="text-lg xl:text-xl font-bold text-slate-800 flex items-center gap-3">
                     <i class="ph-fill ph-robot text-blue-600 text-3xl xl:text-4xl"></i>
-                    <div class="flex flex-col leading-tight">
-                        <span>โปรแกรมจำลองการเขียนโปรแกรมควบคุมหุ่นยนต์ระดับกลาง สพฐ.2026</span>
-                        <span class="text-sm font-medium text-blue-600">โดย สมาร์โรโบติกส์</span>
+                    <div class="flex flex-col leading-tight text-center md:text-left">
+                        <span id="app-main-title">โปรแกรมจำลองการเขียนโปรแกรมควบคุมหุ่นยนต์ สพฐ.2026</span>
+                        <span class="text-sm font-medium text-blue-600">โดย สมาร์โรโบติกส์ <span id="app-subtitle" class="text-slate-500 text-xs ml-1">(ระดับกลาง)</span></span>
                     </div>
                 </h1>
+                
+                <!-- ตัวสลับโหมดในแอป -->
+                <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-inner">
+                    <button onclick="setAppMode('normal')" id="btn-switch-normal" class="px-4 py-1.5 rounded-md text-sm font-bold bg-white text-blue-600 shadow-sm transition-all">ระดับกลาง</button>
+                    <button onclick="setAppMode('mixed')" id="btn-switch-mixed" class="px-4 py-1.5 rounded-md text-sm font-bold text-slate-500 hover:text-slate-700 transition-all">แบบผสม</button>
+                </div>
             </div>
             
             <div class="flex gap-3 flex-wrap justify-center xl:justify-end items-center w-full xl:w-auto">
-                
-                <!-- แสดงคะแนน -->
                 <div class="flex items-center gap-2 bg-emerald-50/90 backdrop-blur border border-emerald-200 px-4 py-1.5 rounded-lg shadow-sm mr-1">
                     <i class="ph-fill ph-star text-emerald-500 text-xl"></i>
                     <span class="font-bold text-emerald-800 text-sm md:text-base">คะแนน: <span id="display-score" class="text-lg">0</span></span>
                 </div>
 
-                <!-- ยอดผู้เข้าชมรวม -->
+                <div class="flex items-center gap-1.5 bg-green-50/80 backdrop-blur border border-green-200 p-1.5 px-3 rounded-lg mr-1 shadow-sm text-green-700" title="ผู้กำลังออนไลน์ขณะนี้">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm font-medium hidden md:inline">ออนไลน์:</span>
+                    <span class="font-bold text-sm" id="header-online-counter">0</span>
+                </div>
+
                 <div class="flex items-center gap-1.5 bg-blue-50/80 backdrop-blur border border-blue-200 p-1.5 px-3 rounded-lg mr-1 shadow-sm text-blue-700" title="ยอดเข้าใช้งานระบบทั้งหมด">
                     <i class="ph-fill ph-eye text-lg"></i>
+                    <span class="text-sm font-medium hidden md:inline">เข้าชม:</span>
                     <span class="font-bold text-sm" id="header-visit-counter">0</span>
                 </div>
 
-                <!-- ปุ่มเปลี่ยน Theme -->
                 <div class="flex items-center gap-1 bg-slate-200/50 backdrop-blur border border-slate-300/50 p-1 rounded-lg mr-1 hidden sm:flex">
                     <button onclick="setTheme('day')" id="btn-theme-day" class="p-1.5 rounded-md transition-all bg-white shadow-sm text-amber-500" title="โหมดกลางวัน"><i class="ph-fill ph-sun text-lg"></i></button>
                     <button onclick="setTheme('night')" id="btn-theme-night" class="p-1.5 rounded-md transition-all text-slate-500 hover:bg-white/50 hover:text-indigo-500" title="โหมดกลางคืน"><i class="ph-fill ph-moon text-lg"></i></button>
                     <button onclick="setTheme('colorful')" id="btn-theme-colorful" class="p-1.5 rounded-md transition-all text-slate-500 hover:bg-white/50 hover:text-pink-500" title="โหมดสีสัน"><i class="ph-fill ph-palette text-lg"></i></button>
                 </div>
 
-                <!-- ส่วนของผู้ใช้และล็อกอิน -->
                 <div id="auth-guest" class="flex items-center gap-2 border-r border-slate-200 pr-3">
                     <button onclick="showModal('login-modal')" class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">เข้าสู่ระบบ</button>
                     <button onclick="showModal('register-modal')" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">สมัครสมาชิก</button>
@@ -160,14 +190,11 @@
                     <button onclick="handleLogout()" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors text-sm font-medium">ออกจากระบบ</button>
                 </div>
 
-                <!-- ปุ่มเครื่องมือ -->
                 <div class="flex items-center gap-1.5">
-                    <!-- ปุ่มซ่อน/แสดง -->
                     <button onclick="toggleActionTools()" id="btn-toggle-tools" class="px-2 py-1.5 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition-colors shadow-sm z-10" title="ซ่อน/แสดงปุ่มเครื่องมือ">
                         <i class="ph-bold ph-caret-right transition-transform duration-300" id="icon-toggle-tools"></i>
                     </button>
                     
-                    <!-- กลุ่มปุ่มที่ถูกซ่อนได้ -->
                     <div id="action-tools-group" class="flex items-center gap-2 overflow-hidden transition-all duration-300 max-w-[500px] opacity-100 origin-right">
                         <div class="flex items-center gap-2 shrink-0 min-w-max">
                             <button onclick="showModal('admin-password-modal')" class="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 font-medium shadow-sm text-sm"><i class="ph ph-shield-check text-lg"></i><span class="hidden md:inline">แอดมิน</span></button>
@@ -185,43 +212,75 @@
         <!-- แถบเครื่องมือแผ่นลาย (Palette) -->
         <section class="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 shadow-sm no-print z-0 pointer-events-auto transition-all duration-300" id="palette-section">
             <div class="max-w-[1600px] mx-auto flex justify-between items-start gap-4">
-                
                 <div class="flex flex-wrap items-start gap-x-12 gap-y-6 flex-grow">
+                    <!-- ลายเส้นพื้นฐาน (แชร์ร่วมกัน แต่เนื้อหาต่างกัน) -->
                     <div class="flex flex-col gap-2.5">
                         <h4 class="font-bold text-slate-700 text-sm flex items-center gap-1.5"><i class="ph ph-line-segments text-base"></i> ลายเส้นพื้นฐาน</h4>
-                        <div id="palette-basic" class="flex flex-wrap gap-3"></div>
+                        <div id="palette-basic-normal" class="flex flex-wrap gap-3"></div>
+                        <div id="palette-basic-mixed" class="hidden flex-wrap gap-3"></div>
                     </div>
+                    <!-- จุดเริ่มต้น (แชร์) -->
                     <div class="flex flex-col gap-2.5">
                         <h4 class="font-bold text-slate-700 text-sm flex items-center gap-1.5"><i class="ph ph-flag-checkered text-base"></i> จุดเริ่มต้น (Start)</h4>
                         <div id="palette-start" class="flex flex-wrap gap-3"></div>
                     </div>
+                    <!-- จุดปล่อยของ (แยกตามโหมด) -->
                     <div class="flex flex-col gap-2.5">
-                        <h4 class="font-bold text-slate-700 text-sm flex items-center gap-1.5"><i class="ph ph-flag-banner text-base"></i> จุดปล่อยถุงยังชีพ</h4>
-                        <div id="palette-special" class="flex flex-wrap gap-3"></div>
+                        <h4 class="font-bold text-slate-700 text-sm flex items-center gap-1.5">
+                            <i id="icon-special-title" class="ph ph-flag-banner text-base"></i> 
+                            <span id="text-special-title">จุดปล่อยถุงยังชีพ</span>
+                        </h4>
+                        <div id="palette-special-normal" class="flex flex-wrap gap-3"></div>
+                        <div id="palette-special-mixed" class="hidden flex-wrap gap-3"></div>
                     </div>
-                    <div class="flex flex-col gap-2.5">
+                    <!-- Checkpoint (เฉพาะโหมดปกติ) -->
+                    <div id="section-checkpoint-normal" class="flex flex-col gap-2.5">
                         <h4 class="font-bold text-slate-700 text-sm flex items-center gap-1.5"><i class="ph ph-target text-base"></i> จุด Check Point</h4>
-                        <div id="palette-checkpoint" class="flex flex-wrap gap-3"></div>
+                        <div id="palette-checkpoint-normal" class="flex flex-wrap gap-3"></div>
                     </div>
-                    
+                    <!-- ห้ามผ่าน (เฉพาะโหมดผสม) -->
+                    <div id="section-obstacle-mixed" class="hidden flex-col gap-2.5">
+                        <h4 class="font-bold text-slate-700 text-sm flex items-center gap-1.5"><i class="ph-fill ph-warning-octagon text-red-500 text-base"></i> ห้ามผ่าน</h4>
+                        <div id="palette-obstacle-mixed" class="flex flex-wrap gap-3"></div>
+                    </div>
+                    <!-- สิ่งของ (เฉพาะโหมดผสม) -->
+                    <div id="section-item-mixed" class="hidden flex-col gap-2.5">
+                        <h4 class="font-bold text-slate-700 text-sm flex items-center gap-1.5"><i class="ph-fill ph-cylinder text-slate-500 text-base"></i> สิ่งของ</h4>
+                        <div id="palette-item-mixed" class="flex flex-wrap gap-3"></div>
+                    </div>
+
+                    <!-- จุดจอดหุ่นยนต์ -->
                     <div class="flex flex-col gap-2.5">
                         <h4 class="font-bold text-slate-700 text-sm flex items-center gap-1.5"><i class="ph-fill ph-robot text-base text-blue-600"></i> จุดจอดหุ่นยนต์</h4>
-                        <div class="flex flex-wrap gap-3">
+                        
+                        <!-- Dock โหมดปกติ (1 หุ่น) -->
+                        <div id="dock-container-normal" class="flex flex-wrap gap-3">
                             <div class="flex flex-col items-center gap-1.5">
-                                <div id="palette-robot-dock" class="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-lg flex items-center justify-center relative transition-colors cursor-grab hover:ring-2 ring-blue-400"></div>
+                                <div id="palette-dock-n" data-robot-id="0" class="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-lg flex items-center justify-center relative transition-colors cursor-grab hover:ring-2 ring-blue-400"></div>
                                 <span class="text-xs text-slate-500 font-medium">ลากลงสนาม</span>
                             </div>
                         </div>
+
+                        <!-- Dock โหมดผสม (2 หุ่น) -->
+                        <div id="dock-container-mixed" class="hidden flex-wrap gap-3">
+                            <div class="flex flex-col items-center gap-1.5">
+                                <div id="palette-dock-m0" data-robot-id="0" class="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-lg flex items-center justify-center relative transition-colors cursor-grab hover:ring-2 ring-blue-400"></div>
+                                <span class="text-xs text-slate-500 font-medium">หุ่น 1 (ออโต้)</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1.5">
+                                <div id="palette-dock-m1" data-robot-id="1" class="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-lg flex items-center justify-center relative transition-colors cursor-grab hover:ring-2 ring-red-400"></div>
+                                <span class="text-xs text-slate-500 font-medium">หุ่น 2 (บังคับ)</span>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
                 
-                <!-- ปุ่มตรึงแถบเครื่องมือ -->
                 <div class="flex-shrink-0 flex items-start pt-1 pl-2 border-l border-slate-200/50 hidden md:block">
                     <button onclick="togglePinPalette()" id="btn-pin-palette" class="p-2 rounded-xl text-slate-400 hover:bg-slate-200/50 hover:text-slate-600 transition shadow-sm bg-white" title="ตรึงแถบเครื่องมือ">
                         <i class="ph ph-push-pin text-2xl transition-transform" id="icon-pin"></i>
                     </button>
                 </div>
-
             </div>
         </section>
 
@@ -229,13 +288,25 @@
         <main class="flex-grow flex flex-col lg:flex-row p-4 sm:p-8 gap-6 max-w-[1600px] mx-auto w-full relative items-stretch">
             
             <div class="flex flex-col gap-6 flex-grow w-full lg:w-[60%] xl:w-[65%] relative">
-
                 <!-- พื้นที่ตารางสนาม (Board) -->
                 <div id="board-wrapper" class="flex-grow bg-white/90 backdrop-blur p-6 rounded-xl shadow-md border border-white/50 overflow-x-auto flex justify-center items-center min-h-[500px]">
                     <div id="field-container" class="relative w-max bg-slate-100 border-[3px] border-slate-800 shadow-inner overflow-visible">
                         <div id="cells-container" class="grid grid-cols-8 grid-rows-4 w-max"></div>
-                        <div id="robot-layer" class="absolute z-50 transition-all duration-500 ease-in-out cursor-pointer flex items-center justify-center" style="width: 12.5%; height: 25%; display: none;">
-                            <div id="robot-inner" class="w-full h-full transition-transform duration-500 ease-in-out flex items-center justify-center pointer-events-none drop-shadow-lg"></div>
+                        
+                        <!-- เส้นแบ่งแดนสีแดง (แสดงเฉพาะโหมดผสม) -->
+                        <div id="board-red-line" class="hidden absolute top-1/2 left-0 w-full h-[4px] bg-red-600 z-[5] transform -translate-y-1/2 pointer-events-none shadow-sm"></div>
+
+                        <!-- เลเยอร์หุ่นยนต์ โหมดปกติ -->
+                        <div id="robot-layer-n" class="absolute z-50 transition-all duration-500 ease-in-out cursor-pointer flex items-center justify-center" style="width: 12.5%; height: 25%; display: none;">
+                            <div id="robot-inner-n" class="w-full h-full transition-transform duration-500 ease-in-out flex items-center justify-center pointer-events-none drop-shadow-lg"></div>
+                        </div>
+
+                        <!-- เลเยอร์หุ่นยนต์ โหมดผสม -->
+                        <div id="robot-layer-m0" class="hidden absolute z-50 transition-all duration-500 ease-in-out cursor-pointer items-center justify-center" style="width: 12.5%; height: 25%;">
+                            <div id="robot-inner-m0" class="w-full h-full transition-transform duration-500 ease-in-out flex items-center justify-center pointer-events-none drop-shadow-lg"></div>
+                        </div>
+                        <div id="robot-layer-m1" class="hidden absolute z-50 transition-all duration-500 ease-in-out cursor-pointer items-center justify-center" style="width: 12.5%; height: 25%;">
+                            <div id="robot-inner-m1" class="w-full h-full transition-transform duration-500 ease-in-out flex items-center justify-center pointer-events-none drop-shadow-lg"></div>
                         </div>
                     </div>
                 </div>
@@ -302,26 +373,47 @@
                         <button id="btn-run" onclick="startSimulation()" class="text-sm bg-slate-600 text-slate-400 cursor-not-allowed px-4 py-1.5 rounded flex items-center gap-1.5 font-bold transition-all shadow-md"><i class="ph-fill ph-play"></i> Run (รัน)</button>
                     </div>
                 </div>
-                
+
                 <div class="bg-[#1e1e1e] border-b border-[#333] px-4 py-2 text-xs text-slate-400 font-mono flex gap-4 overflow-x-auto">
                     <span>go(); <span class="text-slate-500">//เดินหน้า</span></span>
                     <span>BK(); <span class="text-slate-500">//ถอยหลัง</span></span>
                     <span>LL(); <span class="text-slate-500">//หมุนซ้าย</span></span>
                     <span>RR(); <span class="text-slate-500">//หมุนขวา</span></span>
                     <span>JY(); <span class="text-slate-500">//จ่าย</span></span>
+                    <span id="legend-jy-half" class="hidden">JY_HALF(); <span class="text-slate-500">//จ่ายครึ่ง</span></span>
                 </div>
 
                 <div class="flex flex-grow relative h-full min-h-[300px]">
-                    <textarea id="c-code-editor" class="absolute inset-0 w-full h-full bg-[#1e1e1e] text-[#9cdcfe] font-mono text-base p-5 outline-none resize-none leading-relaxed whitespace-pre tracking-wide" spellcheck="false">
-// -- ลำดับการทำงานของหุ่นยนต์ --
-go();
-LL();
-go();
-go();
-RR();
-JY();
-BK();
-</textarea>
+                    <textarea id="c-code-editor" class="absolute inset-0 w-full h-full bg-[#1e1e1e] text-[#9cdcfe] font-mono text-base p-5 outline-none resize-none leading-relaxed whitespace-pre tracking-wide" spellcheck="false"></textarea>
+
+                    <!-- แผงควบคุมแบบบังคับมือ (สำหรับสนามผสม แสดงเมื่อรัน) -->
+                    <div id="manual-control-panel" class="hidden absolute inset-0 w-full h-full bg-[#1e1e1e] flex-col items-center justify-center p-5 z-10">
+                        <h3 class="text-red-400 font-bold mb-4 text-xl flex items-center gap-2 select-none"><i class="ph-fill ph-game-controller text-3xl"></i> ควบคุมหุ่น 2 (ตัวสีแดง)</h3>
+                        <p class="text-slate-400 text-xs mb-6 select-none">(กดค้างเพื่อบังคับทำงาน / ปล่อยเพื่อหยุด)</p>
+
+                        <div class="flex gap-4 mb-6">
+                            <button onmousedown="startManual('arm_out')" onmouseup="stopManual()" onmouseleave="stopManual()" ontouchstart="startManual('arm_out'); event.preventDefault();" ontouchend="stopManual(); event.preventDefault();" class="manual-btn px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg text-white font-bold flex items-center gap-2 border-b-4 border-blue-900 select-none">
+                                <i class="ph-bold ph-arrows-out-line-vertical text-xl"></i> ยืดแขน
+                            </button>
+                            <button onmousedown="startManual('arm_in')" onmouseup="stopManual()" onmouseleave="stopManual()" ontouchstart="startManual('arm_in'); event.preventDefault();" ontouchend="stopManual(); event.preventDefault();" class="manual-btn px-5 py-2.5 bg-orange-600 hover:bg-orange-500 rounded-xl shadow-lg text-white font-bold flex items-center gap-2 border-b-4 border-orange-900 select-none">
+                                <i class="ph-bold ph-arrows-in-line-vertical text-xl"></i> ดึงกลับ
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4 mb-8">
+                            <div></div>
+                            <button onmousedown="startManual('go')" onmouseup="stopManual()" onmouseleave="stopManual()" ontouchstart="startManual('go'); event.preventDefault();" ontouchend="stopManual(); event.preventDefault();" class="manual-btn w-16 h-16 bg-slate-700 hover:bg-slate-600 rounded-2xl shadow-lg flex items-center justify-center text-white border-b-4 border-slate-900 select-none"><i class="ph-bold ph-caret-up text-4xl"></i></button>
+                            <div></div>
+                            
+                            <button onmousedown="startManual('ll')" onmouseup="stopManual()" onmouseleave="stopManual()" ontouchstart="startManual('ll'); event.preventDefault();" ontouchend="stopManual(); event.preventDefault();" class="manual-btn w-16 h-16 bg-slate-700 hover:bg-slate-600 rounded-2xl shadow-lg flex items-center justify-center text-white border-b-4 border-slate-900 select-none"><i class="ph-bold ph-caret-left text-4xl"></i></button>
+                            <button onmousedown="startManual('bk')" onmouseup="stopManual()" onmouseleave="stopManual()" ontouchstart="startManual('bk'); event.preventDefault();" ontouchend="stopManual(); event.preventDefault();" class="manual-btn w-16 h-16 bg-slate-700 hover:bg-slate-600 rounded-2xl shadow-lg flex items-center justify-center text-white border-b-4 border-slate-900 select-none"><i class="ph-bold ph-caret-down text-4xl"></i></button>
+                            <button onmousedown="startManual('rr')" onmouseup="stopManual()" onmouseleave="stopManual()" ontouchstart="startManual('rr'); event.preventDefault();" ontouchend="stopManual(); event.preventDefault();" class="manual-btn w-16 h-16 bg-slate-700 hover:bg-slate-600 rounded-2xl shadow-lg flex items-center justify-center text-white border-b-4 border-slate-900 select-none"><i class="ph-bold ph-caret-right text-4xl"></i></button>
+                        </div>
+                        <button onclick="manualJY()" class="manual-btn px-8 py-4 bg-red-600 hover:bg-red-500 rounded-2xl shadow-lg text-white font-bold flex items-center gap-2 text-xl border-b-4 border-red-900 select-none">
+                            <i class="ph-bold ph-hand-grabbing text-3xl"></i> คีบ / วางสิ่งของ
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
@@ -349,7 +441,7 @@ BK();
         </div>
     </div>
 
-    <!-- ล็อกอิน Modal -->
+    <!-- ล็อกอิน / สมัคร / จัดการแอดมิน (ใช้โค้ดเดิม) -->
     <div id="login-modal" class="fixed inset-0 bg-slate-900/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden modal-enter" id="login-modal-content">
             <div class="flex justify-between items-center p-5 border-b border-slate-100">
@@ -364,7 +456,6 @@ BK();
         </div>
     </div>
 
-    <!-- สมัครสมาชิก Modal -->
     <div id="register-modal" class="fixed inset-0 bg-slate-900/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden modal-enter" id="register-modal-content">
             <div class="flex justify-between items-center p-5 border-b border-slate-100">
@@ -379,7 +470,6 @@ BK();
         </div>
     </div>
 
-    <!-- Admin รหัสผ่าน Modal -->
     <div id="admin-password-modal" class="fixed inset-0 bg-slate-900/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden modal-enter" id="admin-password-modal-content">
             <div class="flex justify-between items-center p-5 border-b border-slate-100">
@@ -394,7 +484,6 @@ BK();
         </div>
     </div>
 
-    <!-- Admin Dashboard Modal -->
     <div id="admin-dashboard-modal" class="fixed inset-0 bg-slate-900/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden modal-enter flex flex-col max-h-[90vh]" id="admin-dashboard-modal-content">
             <div class="flex justify-between items-center p-5 border-b border-slate-100 bg-purple-50">
@@ -413,7 +502,6 @@ BK();
         </div>
     </div>
 
-    <!-- Admin Users Modal -->
     <div id="admin-users-modal" class="fixed inset-0 bg-slate-900/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden modal-enter flex flex-col max-h-[90vh]" id="admin-users-modal-content">
             <div class="flex justify-between items-center p-5 border-b border-slate-100 bg-orange-50">
@@ -424,7 +512,7 @@ BK();
                 <div class="bg-slate-100 rounded-lg overflow-y-auto border border-slate-200 flex-grow shadow-inner h-full max-h-[60vh]">
                     <table class="w-full text-left text-sm relative">
                         <thead class="bg-slate-200 text-slate-700 sticky top-0 z-10 shadow-sm">
-                            <tr><th class="px-4 py-3 font-bold">อีเมลสมาชิก</th><th class="px-4 py-3 font-bold text-center">เข้าชม (ครั้ง)</th><th class="px-4 py-3 font-bold w-24 text-center">จัดการ</th></tr>
+                            <tr><th class="px-4 py-3 font-bold">อีเมลสมาชิก</th><th class="px-4 py-3 font-bold text-center">เข้าชม (ครั้ง)</th><th class="px-4 py-3 font-bold text-center">สิทธิ์สนามผสม</th><th class="px-4 py-3 font-bold w-24 text-center">จัดการ</th></tr>
                         </thead>
                         <tbody id="admin-users-list" class="divide-y divide-slate-200 bg-white"></tbody>
                     </table>
@@ -434,12 +522,11 @@ BK();
         </div>
     </div>
 
-
     <!-- ================= FIREBASE & APP SCRIPT ================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, push, set, update, remove, serverTimestamp, onValue, get, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, push, set, update, remove, serverTimestamp, onValue, get, increment, onDisconnect } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDICZfr9k-oznhm8qj760_kcqWt7bwAIDs",
@@ -458,16 +545,50 @@ BK();
         
         let latestContentData = null;
         window.currentEditId = null;
+        window.currentUserData = null;
+
+        // --- ระบบเช็คผู้ใช้ออนไลน์ (Presence System) ---
+        const presenceRef = ref(db, 'presence');
+        const myPresenceRef = push(presenceRef);
+        
+        onValue(ref(db, '.info/connected'), (snap) => {
+            if (snap.val() === true) {
+                onDisconnect(myPresenceRef).remove().then(() => {
+                    set(myPresenceRef, true);
+                });
+            }
+        });
+
+        onValue(presenceRef, (snap) => {
+            const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+            const headerOnlineEl = document.getElementById('header-online-counter');
+            const landingOnlineEl = document.getElementById('landing-online-counter');
+            if (headerOnlineEl) headerOnlineEl.innerText = count.toLocaleString('th-TH');
+            if (landingOnlineEl) landingOnlineEl.innerText = count.toLocaleString('th-TH');
+        });
 
         if (!sessionStorage.getItem('has_visited_robot_sim')) {
             try { update(ref(db, 'stats'), { totalVisits: increment(1) }); sessionStorage.setItem('has_visited_robot_sim', 'true'); } catch (err) {}
         }
+        
         onValue(ref(db, 'stats/totalVisits'), (snapshot) => {
             const count = snapshot.val() || 0;
             const counterEl = document.getElementById('header-visit-counter');
             const counterAdminEl = document.getElementById('admin-visit-counter');
             if (counterEl) counterEl.innerText = count.toLocaleString('th-TH');
             if (counterAdminEl) counterAdminEl.innerText = count.toLocaleString('th-TH');
+        });
+
+        onValue(ref(db, 'users'), (snapshot) => {
+            const data = snapshot.val();
+            let activeUserCount = 0;
+            if (data) {
+                activeUserCount = Object.values(data).filter(user => user.status !== 'deleted').length;
+            }
+            const userCountEl = document.getElementById('landing-user-count');
+            if (userCountEl) {
+                userCountEl.innerText = activeUserCount.toLocaleString('th-TH');
+            }
         });
 
         onAuthStateChanged(auth, async (user) => {
@@ -486,7 +607,7 @@ BK();
                     window.showAlert('ถูกระงับ', 'บัญชีของคุณถูกลบหรือระงับสิทธิ์โดยผู้ดูแลระบบ', 'error');
                     return;
                 } else if (!snapshot.exists()) {
-                    await set(userRef, { email: user.email, status: 'active', visitCount: 1, createdAt: serverTimestamp() });
+                    await set(userRef, { email: user.email, status: 'active', visitCount: 1, mixedModeAccess: false, createdAt: serverTimestamp() });
                     sessionStorage.setItem('user_session_tracked_' + user.uid, 'true');
                 } else {
                     if (!sessionStorage.getItem('user_session_tracked_' + user.uid)) {
@@ -494,18 +615,33 @@ BK();
                         sessionStorage.setItem('user_session_tracked_' + user.uid, 'true');
                     }
                 }
+                
+                // Track current user data real-time for access control
+                onValue(userRef, (snap) => {
+                    if (snap.exists()) {
+                        window.currentUserData = snap.val();
+                        if (window.currentUserData.status === 'deleted') {
+                            signOut(auth);
+                            window.showAlert('ถูกระงับ', 'บัญชีของคุณถูกลบหรือระงับสิทธิ์โดยผู้ดูแลระบบ', 'error');
+                        } else if (window.appMode === 'mixed' && !window.currentUserData.mixedModeAccess && !window.isAdmin) {
+                            window.setAppMode('normal');
+                            window.showAlert('ถูกจำกัดสิทธิ์', 'สิทธิ์การเข้าถึงสนามผสมของคุณถูกยกเลิก', 'error');
+                        }
+                    }
+                });
 
                 window.isGuestMode = false;
                 landingPage.classList.add('hidden'); appWrapper.classList.remove('hidden'); appWrapper.classList.add('flex');
                 guestUI.classList.add('hidden'); userUI.classList.remove('hidden'); userUI.classList.add('flex');
                 emailDisplay.textContent = user.email;
-                checkRunCondition();
+                if(window.checkRunCondition) window.checkRunCondition();
             } else {
+                window.currentUserData = null;
                 window.isGuestMode = false;
                 landingPage.classList.remove('hidden'); appWrapper.classList.add('hidden'); appWrapper.classList.remove('flex');
                 guestUI.classList.remove('hidden'); guestUI.classList.add('flex'); userUI.classList.add('hidden'); userUI.classList.remove('flex');
                 emailDisplay.textContent = '';
-                checkRunCondition();
+                if(window.checkRunCondition) window.checkRunCondition();
             }
         });
 
@@ -523,7 +659,7 @@ BK();
             if(!email || password.length < 6) return window.showAlert('ข้อผิดพลาด', 'กรุณากรอกอีเมลและรหัสผ่านอย่างน้อย 6 ตัวอักษร', 'error');
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await set(ref(db, 'users/' + userCredential.user.uid), { email: email, status: 'active', visitCount: 1, createdAt: serverTimestamp() });
+                await set(ref(db, 'users/' + userCredential.user.uid), { email: email, status: 'active', visitCount: 1, mixedModeAccess: false, createdAt: serverTimestamp() });
                 sessionStorage.setItem('user_session_tracked_' + userCredential.user.uid, 'true');
                 window.closeModal('register-modal');
                 window.showAlert('สำเร็จ', 'สมัครสมาชิกสำเร็จและเข้าสู่ระบบแล้ว', 'success');
@@ -535,6 +671,7 @@ BK();
             catch (error) { console.error(error); }
         };
 
+        // ... Admin Panel Script คงเดิม ...
         document.getElementById('btn-save-admin').addEventListener('click', async () => {
             const article = document.getElementById('admin-article').value;
             const image = document.getElementById('admin-image').value;
@@ -585,14 +722,23 @@ BK();
                         const user = data[uid];
                         if (user.status === 'active') {
                             const tr = document.createElement('tr');
-                            tr.innerHTML = `<td class="px-4 py-3">${user.email}</td><td class="px-4 py-3 text-center font-bold text-blue-600">${user.visitCount || 1}</td><td class="px-4 py-3 text-center"><button onclick="deleteUserAccount('${uid}', '${user.email}')" class="px-3 py-1.5 bg-red-100 text-red-600 hover:bg-red-200 rounded-md text-xs font-bold flex items-center gap-1 mx-auto"><i class="ph-fill ph-trash"></i> ลบ</button></td>`;
+                            const hasAccess = user.mixedModeAccess === true;
+                            const accessBtn = hasAccess 
+                                ? `<button onclick="toggleMixedModeAccess('${uid}', false)" class="px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-xs font-bold w-full transition-colors"><i class="ph-bold ph-check"></i> อนุมัติแล้ว</button>`
+                                : `<button onclick="toggleMixedModeAccess('${uid}', true)" class="px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-md text-xs font-bold w-full transition-colors"><i class="ph-bold ph-x"></i> ปิดกั้น</button>`;
+
+                            tr.innerHTML = `<td class="px-4 py-3">${user.email}</td><td class="px-4 py-3 text-center font-bold text-blue-600">${user.visitCount || 1}</td><td class="px-4 py-3 text-center">${accessBtn}</td><td class="px-4 py-3 text-center"><button onclick="deleteUserAccount('${uid}', '${user.email}')" class="px-3 py-1.5 bg-red-100 text-red-600 hover:bg-red-200 rounded-md text-xs font-bold flex items-center gap-1 mx-auto"><i class="ph-fill ph-trash"></i> ลบ</button></td>`;
                             tbody.appendChild(tr);
                         }
                     });
                 }
-                if (tbody.children.length === 0) tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-6 text-center text-slate-500">ไม่มีสมาชิก</td></tr>';
+                if (tbody.children.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-slate-500">ไม่มีสมาชิก</td></tr>';
             });
         }
+
+        window.toggleMixedModeAccess = async function(uid, grantAccess) {
+            try { await update(ref(db, 'users/' + uid), { mixedModeAccess: grantAccess }); } catch (error) { window.showAlert('ข้อผิดพลาด', error.message, 'error'); }
+        };
 
         window.deleteUserAccount = async function(uid, email) {
             if(confirm(`ลบ/ระงับบัญชี ${email} ?`)) {
@@ -628,27 +774,118 @@ BK();
         function getYouTubeID(url) { const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/); return (match && match[2].length === 11) ? match[2] : null; }
     </script>
 
-    <!-- ================= UI & SIMULATOR LOGIC ================= -->
+    <!-- ================= UI, APP MODES & SIMULATOR LOGIC ================= -->
     <script>
+        // --- ระบบสลับโหมดแอปพลิเคชัน (Mode Switcher) ---
+        window.appMode = 'normal'; // 'normal' หรือ 'mixed'
+        
+        let codeNormal = "// -- โค้ดสั่งงาน (ระดับกลาง) --\ngo();\nLL();\ngo();\ngo();\nRR();\nJY();\nBK();\n";
+        let codeMixed = "// -- โค้ดสั่งงาน (แบบผสม) --\ngo();\nLL();\ngo();\nRR();\nJY();\nBK();\n";
+
+        document.getElementById('c-code-editor').addEventListener('input', function(e) {
+            if (window.appMode === 'normal') {
+                codeNormal = e.target.value;
+            } else {
+                codeMixed = e.target.value;
+            }
+        });
+
+        window.setAppMode = function(mode) {
+            if (mode === 'mixed' && !window.isAdmin) {
+                if (window.isGuestMode) {
+                    window.showAlert('ถูกจำกัดสิทธิ์', 'โหมดผู้เยี่ยมชมไม่สามารถเข้าใช้งานสนามผสมได้ กรุณาล็อกอินและติดต่อแอดมินเพื่อขอสิทธิ์', 'error');
+                    return;
+                }
+                if (!window.currentUserData || !window.currentUserData.mixedModeAccess) {
+                    window.showAlert('ถูกจำกัดสิทธิ์', 'สนามแบบผสมสงวนสิทธิ์เฉพาะผู้ที่ได้รับการอนุมัติจากแอดมินเท่านั้น', 'error');
+                    return;
+                }
+            }
+
+            if (isSimulating) stopSimulation();
+            window.appMode = mode;
+            
+            // อัปเดต UI ของปุ่มเลือกโหมด
+            const btnLandingN = document.getElementById('btn-mode-select-normal');
+            const btnLandingM = document.getElementById('btn-mode-select-mixed');
+            const btnSwitchN = document.getElementById('btn-switch-normal');
+            const btnSwitchM = document.getElementById('btn-switch-mixed');
+
+            if (mode === 'normal') {
+                document.getElementById('app-subtitle').innerText = "(ระดับกลาง)";
+                
+                btnLandingN.className = "py-2 bg-blue-100 text-blue-700 border-2 border-blue-500 font-bold rounded-lg text-sm transition shadow-sm ring-2 ring-blue-200";
+                btnLandingM.className = "py-2 bg-white text-slate-600 border border-slate-300 font-bold rounded-lg text-sm transition hover:bg-slate-100";
+                
+                btnSwitchN.className = "px-4 py-1.5 rounded-md text-sm font-bold bg-white text-blue-600 shadow-sm transition-all";
+                btnSwitchM.className = "px-4 py-1.5 rounded-md text-sm font-bold text-slate-500 hover:text-slate-700 transition-all";
+
+                // จัดการ Palette
+                document.getElementById('palette-basic-normal').classList.remove('hidden'); document.getElementById('palette-basic-normal').classList.add('flex');
+                document.getElementById('palette-basic-mixed').classList.add('hidden'); document.getElementById('palette-basic-mixed').classList.remove('flex');
+                
+                document.getElementById('palette-special-normal').classList.remove('hidden'); document.getElementById('palette-special-normal').classList.add('flex');
+                document.getElementById('palette-special-mixed').classList.add('hidden'); document.getElementById('palette-special-mixed').classList.remove('flex');
+                document.getElementById('icon-special-title').className = "ph ph-flag-banner text-base";
+                document.getElementById('text-special-title').innerText = "จุดปล่อยถุงยังชีพ";
+
+                document.getElementById('section-checkpoint-normal').classList.remove('hidden'); document.getElementById('section-checkpoint-normal').classList.add('flex');
+                document.getElementById('section-obstacle-mixed').classList.add('hidden'); document.getElementById('section-obstacle-mixed').classList.remove('flex');
+                document.getElementById('section-item-mixed').classList.add('hidden'); document.getElementById('section-item-mixed').classList.remove('flex');
+
+                document.getElementById('dock-container-normal').classList.remove('hidden'); document.getElementById('dock-container-normal').classList.add('flex');
+                document.getElementById('dock-container-mixed').classList.add('hidden'); document.getElementById('dock-container-mixed').classList.remove('flex');
+
+                document.getElementById('board-red-line').classList.add('hidden');
+                document.getElementById('legend-jy-half').classList.add('hidden');
+                document.getElementById('c-code-editor').value = codeNormal;
+                
+            } else {
+                document.getElementById('app-subtitle').innerText = "(แบบผสม บังคับมือ)";
+                
+                btnLandingM.className = "py-2 bg-blue-100 text-blue-700 border-2 border-blue-500 font-bold rounded-lg text-sm transition shadow-sm ring-2 ring-blue-200";
+                btnLandingN.className = "py-2 bg-white text-slate-600 border border-slate-300 font-bold rounded-lg text-sm transition hover:bg-slate-100";
+                
+                btnSwitchM.className = "px-4 py-1.5 rounded-md text-sm font-bold bg-white text-blue-600 shadow-sm transition-all";
+                btnSwitchN.className = "px-4 py-1.5 rounded-md text-sm font-bold text-slate-500 hover:text-slate-700 transition-all";
+
+                // จัดการ Palette
+                document.getElementById('palette-basic-mixed').classList.remove('hidden'); document.getElementById('palette-basic-mixed').classList.add('flex');
+                document.getElementById('palette-basic-normal').classList.add('hidden'); document.getElementById('palette-basic-normal').classList.remove('flex');
+
+                document.getElementById('palette-special-mixed').classList.remove('hidden'); document.getElementById('palette-special-mixed').classList.add('flex');
+                document.getElementById('palette-special-normal').classList.add('hidden'); document.getElementById('palette-special-normal').classList.remove('flex');
+                document.getElementById('icon-special-title').className = "ph ph-flag-banner text-base text-purple-600";
+                document.getElementById('text-special-title').innerText = "จุดวางกระป๋อง";
+
+                document.getElementById('section-obstacle-mixed').classList.remove('hidden'); document.getElementById('section-obstacle-mixed').classList.add('flex');
+                document.getElementById('section-item-mixed').classList.remove('hidden'); document.getElementById('section-item-mixed').classList.add('flex');
+                document.getElementById('section-checkpoint-normal').classList.add('hidden'); document.getElementById('section-checkpoint-normal').classList.remove('flex');
+
+                document.getElementById('dock-container-mixed').classList.remove('hidden'); document.getElementById('dock-container-mixed').classList.add('flex');
+                document.getElementById('dock-container-normal').classList.add('hidden'); document.getElementById('dock-container-normal').classList.remove('flex');
+
+                document.getElementById('board-red-line').classList.remove('hidden');
+                document.getElementById('legend-jy-half').classList.remove('hidden');
+                document.getElementById('c-code-editor').value = codeMixed;
+            }
+            
+            resetGameStates(true);
+            renderGrid();
+        };
+
         window.isGuestMode = false;
         window.isAdmin = false;
         
-        // --- SCORE & AUDIO SYSTEM ---
         let currentScore = 0;
-        let visitedCheckpoints = new Set();
-        let droppedZones = new Set();
         
-        // สร้างระบบเสียงสังเคราะห์ (Web Audio API)
+        // เสียง
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
 
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new AudioContext();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
         function playTone(freq, type, duration, vol=0.1) {
@@ -667,29 +904,15 @@ BK();
 
         function playSound(type) {
             initAudio();
-            if (type === 'checkpoint') {
-                // เสียงปิ๊งสั้นๆ ตอนผ่านจุด Checkpoint
-                playTone(880, 'sine', 0.1); 
-            } else if (type === 'drop') {
-                // เสียงวางถุงยังชีพ
-                playTone(500, 'square', 0.1);
-                setTimeout(() => playTone(700, 'square', 0.15), 100);
-            } else if (type === 'finish') {
-                // เสียงสำเร็จ กลับถึงจุด Start
-                playTone(440, 'sine', 0.1);
-                setTimeout(() => playTone(554, 'sine', 0.1), 100);
-                setTimeout(() => playTone(659, 'sine', 0.2), 200);
-                setTimeout(() => playTone(880, 'sine', 0.4), 300);
-            } else if (type === 'error') {
-                // เสียงตกขอบ
-                playTone(150, 'sawtooth', 0.3);
-            }
+            if (type === 'checkpoint') { playTone(880, 'sine', 0.1); } 
+            else if (type === 'drop') { playTone(500, 'square', 0.1); setTimeout(() => playTone(700, 'square', 0.15), 100); } 
+            else if (type === 'finish') { playTone(440, 'sine', 0.1); setTimeout(() => playTone(554, 'sine', 0.1), 100); setTimeout(() => playTone(659, 'sine', 0.2), 200); setTimeout(() => playTone(880, 'sine', 0.4), 300); } 
+            else if (type === 'error') { playTone(150, 'sawtooth', 0.3); }
         }
 
         function updateScoreUI() {
             const scoreEl = document.getElementById('display-score');
             scoreEl.innerText = currentScore;
-            // ใส่ Animation ให้ตัวเลขเด้ง
             scoreEl.classList.remove('score-bump');
             void scoreEl.offsetWidth; 
             scoreEl.classList.add('score-bump');
@@ -698,7 +921,7 @@ BK();
         window.enterAsGuest = function() {
             window.isGuestMode = true; document.getElementById('landing-page').classList.add('hidden');
             const appWrapper = document.getElementById('app-wrapper'); appWrapper.classList.remove('hidden'); appWrapper.classList.add('flex');
-            checkRunCondition();
+            if(window.checkRunCondition) window.checkRunCondition();
         };
 
         window.setTheme = function(theme) {
@@ -712,24 +935,20 @@ BK();
         }
         document.addEventListener('DOMContentLoaded', () => { setTheme(localStorage.getItem('robot_sim_theme') || 'day'); });
 
-        // --- ระบบซ่อนปุ่มเครื่องมือมุมขวา ---
         window.isToolsVisible = true;
         window.toggleActionTools = function() {
             window.isToolsVisible = !window.isToolsVisible;
             const group = document.getElementById('action-tools-group');
             const icon = document.getElementById('icon-toggle-tools');
             if (window.isToolsVisible) {
-                group.classList.remove('max-w-0', 'opacity-0');
-                group.classList.add('max-w-[500px]', 'opacity-100');
+                group.classList.remove('max-w-0', 'opacity-0'); group.classList.add('max-w-[500px]', 'opacity-100');
                 icon.style.transform = "rotate(0deg)";
             } else {
-                group.classList.remove('max-w-[500px]', 'opacity-100');
-                group.classList.add('max-w-0', 'opacity-0');
+                group.classList.remove('max-w-[500px]', 'opacity-100'); group.classList.add('max-w-0', 'opacity-0');
                 icon.style.transform = "rotate(180deg)";
             }
         };
 
-        // --- ระบบตรึงแถบแผ่นลาย (Pin Palette) ---
         window.isPalettePinned = false;
         window.togglePinPalette = function() {
             window.isPalettePinned = !window.isPalettePinned;
@@ -738,40 +957,19 @@ BK();
             const icon = document.getElementById('icon-pin');
             
             if (window.isPalettePinned) {
-                // ตรึงไว้ด้านบน (ใต้ Header)
-                palette.classList.add('sticky', 'top-[72px]', 'md:top-[88px]', 'z-30', 'shadow-md');
-                palette.classList.remove('z-0');
-                
-                // สไตล์ปุ่มตอนตรึง
-                btn.classList.add('bg-blue-100', 'text-blue-600', 'border', 'border-blue-200');
-                btn.classList.remove('bg-white', 'text-slate-400', 'hover:bg-slate-200/50', 'hover:text-slate-600');
-                
-                // เปลี่ยนรูปไอคอน
-                icon.classList.remove('ph');
-                icon.classList.add('ph-fill');
+                palette.classList.add('sticky', 'top-[72px]', 'md:top-[88px]', 'z-30', 'shadow-md'); palette.classList.remove('z-0');
+                btn.classList.add('bg-blue-100', 'text-blue-600', 'border', 'border-blue-200'); btn.classList.remove('bg-white', 'text-slate-400', 'hover:bg-slate-200/50', 'hover:text-slate-600');
+                icon.classList.remove('ph'); icon.classList.add('ph-fill');
             } else {
-                // เลิกตรึง
-                palette.classList.remove('sticky', 'top-[72px]', 'md:top-[88px]', 'z-30', 'shadow-md');
-                palette.classList.add('z-0');
-                
-                // คืนค่าสไตล์ปุ่ม
-                btn.classList.remove('bg-blue-100', 'text-blue-600', 'border', 'border-blue-200');
-                btn.classList.add('bg-white', 'text-slate-400', 'hover:bg-slate-200/50', 'hover:text-slate-600');
-                
-                // คืนค่ารูปไอคอน
-                icon.classList.remove('ph-fill');
-                icon.classList.add('ph');
+                palette.classList.remove('sticky', 'top-[72px]', 'md:top-[88px]', 'z-30', 'shadow-md'); palette.classList.add('z-0');
+                btn.classList.remove('bg-blue-100', 'text-blue-600', 'border', 'border-blue-200'); btn.classList.add('bg-white', 'text-slate-400', 'hover:bg-slate-200/50', 'hover:text-slate-600');
+                icon.classList.remove('ph-fill'); icon.classList.add('ph');
             }
         };
 
         function showModal(id) { const modal = document.getElementById(id); const content = document.getElementById(id + '-content'); modal.classList.remove('hidden'); modal.classList.add('flex'); content.classList.remove('modal-enter-active'); void content.offsetWidth; content.classList.add('modal-enter-active'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
-
-        window.openAddModal = function() {
-            window.currentEditId = null; document.getElementById('admin-modal-title').innerHTML = '<i class="ph-fill ph-database text-purple-600"></i> ระบบจัดการเนื้อหา (Admin)';
-            ['admin-article', 'admin-image', 'admin-youtube', 'admin-shop'].forEach(id => document.getElementById(id).value = '');
-            showModal('admin-dashboard-modal');
-        }
+        window.openAddModal = function() { window.currentEditId = null; document.getElementById('admin-modal-title').innerHTML = '<i class="ph-fill ph-database text-purple-600"></i> ระบบจัดการเนื้อหา (Admin)'; ['admin-article', 'admin-image', 'admin-youtube', 'admin-shop'].forEach(id => document.getElementById(id).value = ''); showModal('admin-dashboard-modal'); }
 
         window.showAlert = function(title, message, type = 'info') {
             document.getElementById('alert-title').innerHTML = title; document.getElementById('alert-message').innerHTML = message;
@@ -793,13 +991,19 @@ BK();
 
         window.loadCodeFile = function(event) {
             const file = event.target.files[0]; if (!file) return;
-            const reader = new FileReader(); reader.onload = function(e) { document.getElementById('c-code-editor').value = e.target.result; }; reader.readAsText(file); event.target.value = ''; 
+            const reader = new FileReader(); reader.onload = function(e) { 
+                document.getElementById('c-code-editor').value = e.target.result; 
+                if (window.appMode === 'normal') codeNormal = e.target.result;
+                else codeMixed = e.target.result;
+            }; reader.readAsText(file); event.target.value = ''; 
         }
 
-        // ขนาดของถุงยังชีพถูกปรับให้เล็กลงใน CSS Class (w-[15%] h-[15%])
-        const DROPPED_ITEM_HTML = '<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[15%] h-[15%] bg-blue-500 border-2 border-slate-800 shadow-md z-20 rotate-12 pointer-events-none"></div>';
+        // ===============================================
+        // --- ฐานข้อมูล Tile & Robot Graphics ---
+        // ===============================================
+        const DROPPED_ITEM_NORMAL_HTML = '<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[15%] h-[15%] bg-blue-500 border-2 border-slate-800 shadow-md z-20 rotate-12 pointer-events-none"></div>';
 
-        const ROBOT_GRAPHIC_HTML = `
+        const ROBOT_NORMAL_HTML = `
             <div class="relative w-full h-full flex items-center justify-center">
                 <div class="relative w-[45%] h-[65%]">
                     <div class="absolute top-0 left-[20%] w-[60%] h-[25%] bg-cyan-400 border-[2px] border-slate-800 z-10 flex gap-[2px] p-[2px]"><div class="w-1/2 h-full bg-cyan-700"></div><div class="w-1/2 h-full bg-cyan-700"></div></div>
@@ -811,12 +1015,89 @@ BK();
                 </div>
             </div>`;
 
+        function getCanColorClass(canType) {
+            if(canType === 'can-r') return 'bg-gradient-to-br from-red-400 to-red-600';
+            if(canType === 'can-g') return 'bg-gradient-to-br from-emerald-400 to-emerald-600';
+            if(canType === 'can-b') return 'bg-gradient-to-br from-blue-400 to-blue-600';
+            if(canType === 'can-y') return 'bg-gradient-to-br from-yellow-300 to-yellow-500';
+            if(canType === 'can-gray') return 'bg-gradient-to-br from-slate-400 to-slate-600';
+            return 'bg-slate-500';
+        }
+
+        function getRobotGraphicHTML(bodyColor = 'bg-red-600', stripeColor = 'bg-red-500', hasGripper = false, isWalking = false, idSuffix = '0', holdingCanType = null, armExt = 0) {
+            let gripperHTML = '';
+            let heldItemHTML = '';
+            let rodHTML = '';
+            
+            if (holdingCanType) {
+                if (holdingCanType === 'can-4') {
+                    heldItemHTML = `
+                    <div class="absolute -top-[25%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[45%] h-[45%] z-50 pointer-events-none">
+                        <div class="absolute top-0 left-0 w-[45%] h-[45%] bg-gradient-to-br from-red-400 to-red-600 rounded-full border-[2px] border-slate-800 shadow-sm"></div>
+                        <div class="absolute top-0 right-0 w-[45%] h-[45%] bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full border-[2px] border-slate-800 shadow-sm"></div>
+                        <div class="absolute bottom-0 left-0 w-[45%] h-[45%] bg-gradient-to-br from-blue-400 to-blue-600 rounded-full border-[2px] border-slate-800 shadow-sm"></div>
+                        <div class="absolute bottom-0 right-0 w-[45%] h-[45%] bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full border-[2px] border-slate-800 shadow-sm"></div>
+                    </div>
+                    `;
+                } else {
+                    let colorClass = getCanColorClass(holdingCanType);
+                    heldItemHTML = `<div class="absolute -top-[10%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[35%] h-[35%] ${colorClass} rounded-full border-[2px] border-slate-800 z-50 pointer-events-none"></div>`;
+                }
+            }
+
+            if (hasGripper) {
+                rodHTML = `<div class="absolute left-[40%] w-[20%] bg-slate-400 border-x-[2px] border-slate-800 z-20 rounded-t" style="bottom: 80%; height: ${armExt + 45}%;"></div>`;
+                gripperHTML = `
+                <div class="absolute w-full h-full top-0 left-0 z-40" style="transform: translateY(-${armExt}%);">
+                    <div class="absolute -top-[25%] left-[15%] w-[70%] h-[35%] border-x-[6px] border-b-[8px] border-t-0 border-slate-700 rounded-b-[20px]"></div>
+                    <div class="absolute -top-[30%] left-[15%] w-[6px] h-[10%] bg-slate-800 rounded-t-full"></div>
+                    <div class="absolute -top-[30%] right-[15%] w-[6px] h-[10%] bg-slate-800 rounded-t-full"></div>
+                    ${heldItemHTML}
+                </div>
+                `;
+            }
+            
+            let wheelsOrLegs = '';
+            if (isWalking) {
+                wheelsOrLegs = `
+                    <div class="absolute w-[12%] h-[30%] bg-slate-800 border-[2px] border-slate-900 z-20 top-[15%] -left-[15%] rotate-[70deg] origin-right rounded-full shadow-md"></div>
+                    <div class="absolute w-[12%] h-[30%] bg-slate-800 border-[2px] border-slate-900 z-20 top-[35%] -left-[15%] rotate-[90deg] origin-right rounded-full shadow-md"></div>
+                    <div class="absolute w-[12%] h-[30%] bg-slate-800 border-[2px] border-slate-900 z-20 bottom-[15%] -left-[15%] rotate-[110deg] origin-right rounded-full shadow-md"></div>
+                    <div class="absolute w-[12%] h-[30%] bg-slate-800 border-[2px] border-slate-900 z-20 top-[15%] -right-[15%] rotate-[-70deg] origin-left rounded-full shadow-md"></div>
+                    <div class="absolute w-[12%] h-[30%] bg-slate-800 border-[2px] border-slate-900 z-20 top-[35%] -right-[15%] rotate-[-90deg] origin-left rounded-full shadow-md"></div>
+                    <div class="absolute w-[12%] h-[30%] bg-slate-800 border-[2px] border-slate-900 z-20 bottom-[15%] -right-[15%] rotate-[-110deg] origin-left rounded-full shadow-md"></div>
+                `;
+            } else {
+                wheelsOrLegs = `
+                    <div class="absolute w-[25%] h-[35%] bg-yellow-400 border-[2px] border-slate-800 rounded flex flex-col justify-evenly items-center z-20 top-[15%] -left-[10%]"><div class="w-[150%] h-[2px] bg-slate-800 rotate-[20deg]"></div></div>
+                    <div class="absolute w-[25%] h-[35%] bg-yellow-400 border-[2px] border-slate-800 rounded flex flex-col justify-evenly items-center z-20 top-[15%] -right-[10%]"><div class="w-[150%] h-[2px] bg-slate-800 -rotate-[20deg]"></div></div>
+                    <div class="absolute w-[25%] h-[35%] bg-yellow-400 border-[2px] border-slate-800 rounded flex flex-col justify-evenly items-center z-20 bottom-[5%] -left-[10%]"><div class="w-[150%] h-[2px] bg-slate-800 -rotate-[20deg]"></div></div>
+                    <div class="absolute w-[25%] h-[35%] bg-yellow-400 border-[2px] border-slate-800 rounded flex flex-col justify-evenly items-center z-20 bottom-[5%] -right-[10%]"><div class="w-[150%] h-[2px] bg-slate-800 rotate-[20deg]"></div></div>
+                `;
+            }
+            
+            return `
+            <div class="relative w-full h-full flex items-center justify-center">
+                <div class="relative w-[45%] h-[55%]">
+                    ${rodHTML}
+                    ${gripperHTML}
+                    <div class="absolute top-0 left-[20%] w-[60%] h-[25%] bg-cyan-400 border-[2px] border-slate-800 z-30 flex gap-[2px] p-[2px]"><div class="w-1/2 h-full bg-cyan-700"></div><div class="w-1/2 h-full bg-cyan-700"></div></div>
+                    ${wheelsOrLegs}
+                    <div class="absolute top-[20%] left-[5%] w-[90%] h-[75%] ${bodyColor} border-[2px] border-slate-800 rounded z-30 shadow-sm flex flex-col items-center pt-1"><div class="w-[60%] h-[30%] bg-slate-800 rounded-sm mb-1 flex justify-center items-center"><div class="w-4/5 h-[2px] ${stripeColor}"></div></div><div class="w-[30%] h-[25%] bg-slate-800 rounded-full mt-1"></div></div>
+                </div>
+            </div>`;
+        }
+
         const TILE_DEFS = {
+            // ร่วมกัน
             'blank': { name: 'แผ่นเปล่า', class: '' },
             'box': { name: 'สี่เหลี่ยม', class: 'border-[4px] border-[#111]' },
             'straight': { name: 'เส้นตรง', class: 'border-t-[4px] border-b-[4px] border-[#111]' },
             'corner': { name: 'ทางโค้ง', class: 'border-t-[4px] border-l-[4px] border-[#111]' },
             'single': { name: 'เส้นเดี่ยว', class: 'border-t-[4px] border-[#111]' },
+            'start': { name: 'START', class: 'border-l-[4px] border-r-[4px] border-[#111]', hasStart: true },
+            
+            // เฉพาะโหมดปกติ
             'zone-g': { name: 'จุดปล่อย', class: 'border-[4px] border-r-0 border-[#111]', style: 'background: linear-gradient(to right, #10b981 50%, white 50%);' },
             'zone-r': { name: 'จุดปล่อย', class: 'border-[4px] border-l-0 border-[#111]', style: 'background: linear-gradient(to left, #ef4444 50%, white 50%);' },
             'zone-b': { name: 'จุดปล่อย', class: 'border-[4px] border-r-0 border-[#111]', style: 'background: linear-gradient(to right, #3b82f6 50%, white 50%);' },
@@ -825,36 +1106,98 @@ BK();
             'cp-single': { name: 'จุด (เดี่ยว)', class: 'border-t-[4px] border-[#111]', hasDot: true },
             'cp-corner': { name: 'จุด (โค้ง)', class: 'border-t-[4px] border-l-[4px] border-[#111]', hasDot: true },
             'cp-straight': { name: 'จุด (ตรง)', class: 'border-t-[4px] border-b-[4px] border-[#111]', hasDot: true },
-            'start': { name: 'START', class: 'border-l-[4px] border-r-[4px] border-[#111]', hasStart: true }
+
+            // เฉพาะโหมดผสม
+            'blank-m': { name: 'แผ่นเปล่า', class: 'bg-green-500 border-t-[4px] border-b-[4px] border-red-600' },
+            'blank-blue-m': { name: 'เปล่าสีน้ำเงิน', class: 'bg-blue-500 border-t-[4px] border-b-[4px] border-red-600' },
+            'h-line-m': { name: 'เส้นแนวนอน', class: '', style: 'background: linear-gradient(to bottom, transparent calc(50% - 2px), #111 calc(50% - 2px), #111 calc(50% + 2px), transparent calc(50% + 2px)); background-color: white;' },
+            'cross-m': { name: 'สี่แยก', class: '', style: 'background: linear-gradient(to right, transparent calc(50% - 2px), #111 calc(50% - 2px), #111 calc(50% + 2px), transparent calc(50% + 2px)), linear-gradient(to bottom, transparent calc(50% - 2px), #111 calc(50% - 2px), #111 calc(50% + 2px), transparent calc(50% + 2px)); background-color: white;' },
+            'zone-gray-m': { name: 'จุดวางกระป๋อง', class: 'border-[4px] border-[#111] bg-slate-400', html: '<div class="absolute top-[15%] left-[15%] w-[30%] h-[30%] rounded-full bg-white z-0 pointer-events-none"></div><div class="absolute top-[15%] right-[15%] w-[30%] h-[30%] rounded-full bg-white z-0 pointer-events-none"></div><div class="absolute bottom-[15%] left-[15%] w-[30%] h-[30%] rounded-full bg-white z-0 pointer-events-none"></div><div class="absolute bottom-[15%] right-[15%] w-[30%] h-[30%] rounded-full bg-white z-0 pointer-events-none"></div>' },
+            'obstacle-m': { name: 'พื้นที่สีดำ', class: 'border-[4px] border-[#111] bg-[#222]' },
+            'can-4-m': { name: '4 กระป๋อง', class: 'border-t-[4px] border-b-[4px] border-l-[4px] border-red-600' }
         };
 
-        const PALETTES = {
-            'palette-basic': ['blank', 'box', 'straight', 'corner', 'single'],
+        const PALETTES_NORMAL = {
+            'palette-basic-normal': ['blank', 'box', 'straight', 'corner', 'single'],
             'palette-start': ['start'],
-            'palette-special': ['zone-g', 'zone-r', 'zone-b', 'zone-y'],
-            'palette-checkpoint': ['cp-blank', 'cp-single', 'cp-corner', 'cp-straight']
+            'palette-special-normal': ['zone-g', 'zone-r', 'zone-b', 'zone-y'],
+            'palette-checkpoint-normal': ['cp-blank', 'cp-single', 'cp-corner', 'cp-straight']
         };
 
-        let gridData = Array(32).fill(null); 
-        gridData[27] = { type: 'start', rotation: 0 }; 
-        let robotData = { index: 'dock', rotation: 0 }; 
-        let droppedItems = []; 
+        const PALETTES_MIXED = {
+            'palette-basic-mixed': ['blank-m', 'blank-blue-m', 'h-line-m', 'cross-m', 'corner', 'single'],
+            'palette-special-mixed': ['zone-gray-m'],
+            'palette-obstacle-mixed': ['obstacle-m'],
+            'palette-item-mixed': ['can-4-m']
+        };
+
+        // ข้อมูลเริ่มต้นสำหรับแต่ละโหมด
+        const defaultNormalGrid = [{"type":"corner","rotation":0},{"type":"single","rotation":0},{"type":"corner","rotation":90},{"type":"cp-single","rotation":0},{"type":"single","rotation":0},{"type":"single","rotation":0},{"type":"zone-y","rotation":180},{"type":"corner","rotation":90},{"type":"straight","rotation":90},{"type":"single","rotation":0},{"type":"corner","rotation":180},{"type":"box","rotation":90},{"type":"box","rotation":90},{"type":"blank","rotation":0},{"type":"blank","rotation":0},{"type":"single","rotation":90},{"type":"straight","rotation":90},{"type":"blank","rotation":0},{"type":"blank","rotation":0},{"type":"blank","rotation":0},{"type":"blank","rotation":0},{"type":"blank","rotation":0},{"type":"cp-corner","rotation":0},{"type":"single","rotation":90},{"type":"start","rotation":0},{"type":"zone-g","rotation":270},{"type":"zone-b","rotation":0},{"type":"single","rotation":180},{"type":"straight","rotation":0},{"type":"single","rotation":180},{"type":"box","rotation":0},{"type":"zone-r","rotation":90}];
+        let gridDataNormal = JSON.parse(JSON.stringify(defaultNormalGrid));
+        
+        const defaultMixedGrid = [{"type":"cross-m","rotation":0},{"type":"h-line-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"h-line-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"zone-gray-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"h-line-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"blank-m","rotation":180},{"type":"blank-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"blank-blue-m","rotation":90},{"type":"zone-gray-m","rotation":0},{"type":"h-line-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"can-4-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"start","rotation":90},{"type":"h-line-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"obstacle-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"h-line-m","rotation":0},{"type":"cross-m","rotation":0},{"type":"cross-m","rotation":0}];
+        let gridDataMixed = JSON.parse(JSON.stringify(defaultMixedGrid));
+
+        // State โหมดปกติ
+        let robotNormal = { index: 'dock', rotation: 0 };
+        let droppedItemsNormal = [];
+        let visitedCheckpointsN = new Set();
+        let droppedZonesN = new Set();
+
+        // State โหมดผสม
+        let robotsMixed = [{ index: 'dock', rotation: 0, holdingCan: null }, { index: 'dock', rotation: 0, holdingCan: null }];
+        let boardCansM = [];
+        let r2PosX = 0, r2PosY = 0, r2Rot = 0, r2Arm = 0;
+        let manualState = null;
+        let manualLoopId = null;
+        let isAutoWaitingForBaton = false;
+        let activeCans4M = {};
+        let activeGrayZonesM = {};
+
+        // Shared State
         let draggedItem = null;
         let simulationTimer = null;
         let isSimulating = false;
 
-        function init() {
-            Object.keys(PALETTES).forEach(id => renderPaletteItems(id, PALETTES[id]));
-            document.getElementById('robot-inner').innerHTML = ROBOT_GRAPHIC_HTML;
-            setupRobotLayerEvents(); setupTrashArea(); setupDockArea(); renderGrid();
+        function getActiveGrid() { return window.appMode === 'normal' ? gridDataNormal : gridDataMixed; }
+
+        function resetGameStates(resetPosition = false) {
+            currentScore = 0;
+            if (window.appMode === 'normal') {
+                droppedItemsNormal = [];
+                visitedCheckpointsN.clear();
+                droppedZonesN.clear();
+                if(resetPosition && robotNormal.index !== 'dock') { robotNormal.index = 'dock'; robotNormal.rotation = 0; }
+            } else {
+                boardCansM = [];
+                activeCans4M = {};
+                activeGrayZonesM = {};
+                isAutoWaitingForBaton = false;
+                stopManual();
+                if(resetPosition) {
+                    for(let i=0; i<2; i++) {
+                        if(robotsMixed[i].index !== 'dock') { robotsMixed[i].index = 'dock'; robotsMixed[i].rotation = 0; robotsMixed[i].holdingCan = null; }
+                    }
+                    r2PosX = 0; r2PosY = 0; r2Rot = 0; r2Arm = 0;
+                }
+            }
+            updateScoreUI();
+        }
+
+        function renderAllPalettes() {
+            Object.keys(PALETTES_NORMAL).forEach(id => renderPaletteItems(id, PALETTES_NORMAL[id]));
+            Object.keys(PALETTES_MIXED).forEach(id => renderPaletteItems(id, PALETTES_MIXED[id]));
+            renderPaletteItems('palette-start', ['start']);
         }
 
         function renderPaletteItems(containerId, items) {
             const container = document.getElementById(containerId);
+            if(!container) return;
+            container.innerHTML = '';
             items.forEach(type => {
                 const wrapper = document.createElement('div'); wrapper.className = 'flex flex-col items-center gap-1.5';
                 wrapper.appendChild(createTileElement(type, 0, true));
-                const label = document.createElement('span'); label.className = 'text-xs text-slate-500 font-medium'; label.textContent = TILE_DEFS[type].name;
+                const label = document.createElement('span'); label.className = 'text-xs text-slate-500 font-medium whitespace-nowrap'; label.textContent = TILE_DEFS[type].name;
                 wrapper.appendChild(label); container.appendChild(wrapper);
             });
         }
@@ -866,12 +1209,33 @@ BK();
             if (def.hasDot) el.innerHTML += `<div class="w-1/6 h-1/6 bg-yellow-400 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none shadow-sm"></div>`;
             if (def.hasStart) el.innerHTML += `<div class="w-3/5 h-3/5 bg-red-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 pointer-events-none shadow-sm"><span class="text-black font-bold text-[9px] md:text-xs leading-none select-none tracking-wider">START</span></div>`;
             
+            if (type === 'can-4-m') {
+                let cans = isSimulating && activeCans4M[gridIndex] ? activeCans4M[gridIndex] : ['can-r', 'can-g', 'can-b', 'can-y'];
+                if (isPalette) cans = ['can-r', 'can-g', 'can-b', 'can-y'];
+                let html = '';
+                if (cans.includes('can-r')) html += `<div class="absolute top-[15%] left-[15%] w-[30%] h-[30%] ${getCanColorClass('can-r')} rounded-full border-[2px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                if (cans.includes('can-g')) html += `<div class="absolute top-[15%] right-[15%] w-[30%] h-[30%] ${getCanColorClass('can-g')} rounded-full border-[2px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                if (cans.includes('can-b')) html += `<div class="absolute bottom-[15%] left-[15%] w-[30%] h-[30%] ${getCanColorClass('can-b')} rounded-full border-[2px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                if (cans.includes('can-y')) html += `<div class="absolute bottom-[15%] right-[15%] w-[30%] h-[30%] ${getCanColorClass('can-y')} rounded-full border-[2px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                el.innerHTML += html;
+            } else if (type === 'zone-gray-m') {
+                let placed = isSimulating && activeGrayZonesM[gridIndex] ? activeGrayZonesM[gridIndex] : [null, null, null, null];
+                let html = def.html;
+                if (placed[0]) html += `<div class="absolute top-[15%] left-[15%] w-[30%] h-[30%] ${getCanColorClass(placed[0])} rounded-full border-[2px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                if (placed[1]) html += `<div class="absolute top-[15%] right-[15%] w-[30%] h-[30%] ${getCanColorClass(placed[1])} rounded-full border-[2px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                if (placed[2]) html += `<div class="absolute bottom-[15%] left-[15%] w-[30%] h-[30%] ${getCanColorClass(placed[2])} rounded-full border-[2px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                if (placed[3]) html += `<div class="absolute bottom-[15%] right-[15%] w-[30%] h-[30%] ${getCanColorClass(placed[3])} rounded-full border-[2px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                el.innerHTML = html;
+            } else if (def.html) {
+                el.innerHTML += def.html;
+            }
+            
             el.draggable = !isSimulating; el.dataset.type = type;
             if (isPalette) { el.classList.add('w-14', 'h-14', 'cursor-grab', 'hover:ring-2', 'ring-blue-400', 'shadow-sm', 'border', 'border-slate-200'); } 
             else {
                 el.classList.add('w-full', 'h-full', 'absolute', 'top-0', 'left-0', isSimulating ? 'cursor-default' : 'cursor-pointer');
                 el.style.transform = `rotate(${rotation}deg)`;
-                if (!isSimulating) { el.addEventListener('click', (e) => { e.stopPropagation(); gridData[gridIndex].rotation = (gridData[gridIndex].rotation + 90) % 360; renderGrid(); }); }
+                if (!isSimulating) { el.addEventListener('click', (e) => { e.stopPropagation(); getActiveGrid()[gridIndex].rotation = (getActiveGrid()[gridIndex].rotation + 90) % 360; renderGrid(); }); }
             }
 
             el.addEventListener('dragstart', (e) => { draggedItem = { type: type, sourceIndex: isPalette ? null : gridIndex, rotation: rotation }; e.dataTransfer.setData('text/plain', type); setTimeout(() => el.classList.add('opacity-40'), 0); });
@@ -881,6 +1245,8 @@ BK();
 
         function renderGrid() {
             const container = document.getElementById('cells-container'); container.innerHTML = ''; 
+            const activeGrid = getActiveGrid();
+
             for (let i = 0; i < 32; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] md:w-[84px] md:h-[84px] lg:w-[100px] lg:h-[100px] xl:w-[115px] xl:h-[115px] relative group transition-colors border-r border-b border-slate-300 bg-slate-50';
@@ -892,76 +1258,160 @@ BK();
                     cell.addEventListener('drop', (e) => {
                         e.preventDefault(); cell.classList.remove('drag-over');
                         if (draggedItem) {
-                            if (draggedItem.type === 'robot') { robotData.index = parseInt(cell.dataset.index); robotData.rotation = draggedItem.rotation || 0; } 
-                            else {
-                                if (draggedItem.sourceIndex !== null && draggedItem.sourceIndex !== 'dock') gridData[draggedItem.sourceIndex] = null;
-                                gridData[parseInt(cell.dataset.index)] = { type: draggedItem.type, rotation: draggedItem.rotation || 0 };
+                            if (draggedItem.type === 'robot') {
+                                let newIdx = parseInt(cell.dataset.index);
+                                if (window.appMode === 'normal') {
+                                    robotNormal.index = newIdx; robotNormal.rotation = draggedItem.rotation || 0;
+                                } else {
+                                    robotsMixed[draggedItem.id].index = newIdx; robotsMixed[draggedItem.id].rotation = draggedItem.rotation || 0;
+                                    if(draggedItem.id === 1) { r2PosX = newIdx % 8; r2PosY = Math.floor(newIdx / 8); r2Rot = draggedItem.rotation || 0; r2Arm = 0; }
+                                }
+                            } else {
+                                if (draggedItem.sourceIndex !== null && draggedItem.sourceIndex !== 'dock') activeGrid[draggedItem.sourceIndex] = null;
+                                activeGrid[parseInt(cell.dataset.index)] = { type: draggedItem.type, rotation: draggedItem.rotation || 0 };
                             }
                             renderGrid();
                         }
                     });
                 }
-                if (gridData[i]) cell.appendChild(createTileElement(gridData[i].type, gridData[i].rotation, false, i));
                 
-                // ถุงยังชีพถูกวาง
-                if (droppedItems.includes(i)) {
-                    cell.innerHTML += DROPPED_ITEM_HTML;
+                if (activeGrid[i]) cell.appendChild(createTileElement(activeGrid[i].type, activeGrid[i].rotation, false, i));
+                
+                // ถุงยังชีพ (Normal) หรือ กระป๋อง (Mixed)
+                if (window.appMode === 'normal' && droppedItemsNormal.includes(i)) {
+                    cell.innerHTML += DROPPED_ITEM_NORMAL_HTML;
+                } else if (window.appMode === 'mixed') {
+                    boardCansM.forEach(can => {
+                        if (can.index === i) {
+                            let posClass = 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'; 
+                            if (can.quad === 0) posClass = 'top-[15%] left-[15%]';
+                            else if (can.quad === 1) posClass = 'top-[15%] right-[15%]';
+                            else if (can.quad === 2) posClass = 'bottom-[15%] left-[15%]';
+                            else if (can.quad === 3) posClass = 'bottom-[15%] right-[15%]';
+                            cell.innerHTML += `<div class="absolute ${posClass} w-[30%] h-[30%] ${getCanColorClass(can.type)} rounded-full border-[3px] border-slate-800 shadow-md z-10 pointer-events-none"></div>`;
+                        }
+                    });
                 }
+
                 container.appendChild(cell);
             }
             updateRobotLayer(); checkRunCondition(); 
         }
 
         function updateRobotLayer() {
-            const robotLayer = document.getElementById('robot-layer'); const robotInner = document.getElementById('robot-inner'); const paletteDock = document.getElementById('palette-robot-dock');
-            robotLayer.style.display = 'flex';
-            if (robotData.index === 'dock') {
-                robotLayer.style.display = 'none';
-                paletteDock.innerHTML = `<div class="w-full h-full flex items-center justify-center pointer-events-none transition-transform duration-300" style="transform: rotate(${robotData.rotation}deg)">${ROBOT_GRAPHIC_HTML}</div>`;
-                paletteDock.classList.remove('border-dashed', 'bg-slate-50', 'border-slate-300'); paletteDock.classList.add('cursor-grab', 'hover:ring-2', 'bg-white', 'border-slate-200'); paletteDock.draggable = !isSimulating;
-            } else if (robotData.index !== null) {
-                const x = robotData.index % 8; const y = Math.floor(robotData.index / 8);
-                robotLayer.style.left = `${x * 12.5}%`; robotLayer.style.top = `${y * 25}%`; robotLayer.style.display = 'flex'; robotInner.style.transform = `rotate(${robotData.rotation}deg)`;
+            if (window.appMode === 'normal') {
+                document.getElementById('robot-layer-m0').style.display = 'none';
+                document.getElementById('robot-layer-m1').style.display = 'none';
                 
-                paletteDock.innerHTML = '<span class="text-[10px] text-slate-400 font-bold text-center select-none pointer-events-none">ที่จอด<br>ว่าง</span>';
-                paletteDock.classList.add('border-dashed', 'bg-slate-50', 'border-slate-300'); paletteDock.classList.remove('cursor-grab', 'hover:ring-2', 'bg-white', 'border-slate-200'); paletteDock.draggable = false;
-            } else { robotLayer.style.display = 'none'; }
+                const layer = document.getElementById('robot-layer-n');
+                const inner = document.getElementById('robot-inner-n');
+                const dock = document.getElementById('palette-dock-n');
+
+                if(robotNormal.index === 'dock') {
+                    layer.style.display = 'none';
+                    dock.innerHTML = `<div class="w-full h-full flex items-center justify-center pointer-events-none transition-transform duration-300" style="transform: rotate(${robotNormal.rotation}deg)">${ROBOT_NORMAL_HTML}</div>`;
+                    dock.classList.remove('border-dashed', 'bg-slate-50', 'border-slate-300'); dock.classList.add('cursor-grab', 'hover:ring-2', 'bg-white', 'border-slate-200'); dock.draggable = !isSimulating;
+                } else {
+                    dock.innerHTML = '<span class="text-[10px] text-slate-400 font-bold text-center select-none pointer-events-none">ที่จอด<br>ว่าง</span>';
+                    dock.classList.add('border-dashed', 'bg-slate-50', 'border-slate-300'); dock.classList.remove('cursor-grab', 'hover:ring-2', 'bg-white', 'border-slate-200'); dock.draggable = false;
+                    
+                    const x = robotNormal.index % 8; const y = Math.floor(robotNormal.index / 8);
+                    layer.style.left = `${x * 12.5}%`; layer.style.top = `${y * 25}%`; layer.style.display = 'flex'; inner.style.transform = `rotate(${robotNormal.rotation}deg)`;
+                    inner.innerHTML = ROBOT_NORMAL_HTML;
+                }
+            } else {
+                document.getElementById('robot-layer-n').style.display = 'none';
+
+                for(let i=0; i<2; i++) {
+                    const layer = document.getElementById(`robot-layer-m${i}`);
+                    const inner = document.getElementById(`robot-inner-m${i}`);
+                    const dock = document.getElementById(`palette-dock-m${i}`);
+                    const rData = robotsMixed[i];
+
+                    if (rData.index === 'dock' || rData.index === null) {
+                        layer.style.display = 'none';
+                        const isWalking = i === 0; const holding = rData.holdingCan || null;
+                        const colors = i === 0 ? ['bg-blue-600', 'bg-blue-500', true, isWalking, `${i}`, holding, 0] : ['bg-red-600', 'bg-red-500', true, isWalking, `${i}`, holding, 0];
+                        dock.innerHTML = `<div class="w-full h-full flex items-center justify-center pointer-events-none transition-transform duration-300" style="transform: rotate(${rData.rotation}deg)">${getRobotGraphicHTML(...colors)}</div>`;
+                        dock.classList.remove('border-dashed', 'bg-slate-50', 'border-slate-300'); dock.classList.add('cursor-grab', 'hover:ring-2', 'bg-white', 'border-slate-200'); dock.draggable = !isSimulating;
+                    } else {
+                        dock.innerHTML = '<span class="text-[10px] text-slate-400 font-bold text-center select-none pointer-events-none">ที่จอด<br>ว่าง</span>';
+                        dock.classList.add('border-dashed', 'bg-slate-50', 'border-slate-300'); dock.classList.remove('cursor-grab', 'hover:ring-2', 'bg-white', 'border-slate-200'); dock.draggable = false;
+                        
+                        if (i === 1 && isSimulating) {
+                            layer.style.left = `${r2PosX * 12.5}%`; layer.style.top = `${r2PosY * 25}%`; inner.style.transform = `rotate(${r2Rot}deg)`;
+                        } else {
+                            const x = rData.index % 8; const y = Math.floor(rData.index / 8);
+                            layer.style.left = `${x * 12.5}%`; layer.style.top = `${y * 25}%`; inner.style.transform = `rotate(${rData.rotation}deg)`;
+                        }
+                        
+                        const isWalking = i === 0; const holding = rData.holdingCan || null; const armVal = i === 1 ? r2Arm : 0;
+                        const colors = i === 0 ? ['bg-blue-600', 'bg-blue-500', true, isWalking, `${i}`, holding, 0] : ['bg-red-600', 'bg-red-500', true, isWalking, `${i}`, holding, armVal];
+                        inner.innerHTML = getRobotGraphicHTML(...colors);
+                        layer.style.display = 'flex'; 
+                    }
+                }
+            }
         }
 
         function setupRobotLayerEvents() {
-            const robotLayer = document.getElementById('robot-layer'); robotLayer.draggable = true;
-            robotLayer.addEventListener('dragstart', (e) => { if (isSimulating) { e.preventDefault(); return; } draggedItem = { type: 'robot', sourceIndex: robotData.index, rotation: robotData.rotation }; e.dataTransfer.setData('text/plain', 'robot'); setTimeout(() => robotLayer.classList.add('opacity-40'), 0); });
-            robotLayer.addEventListener('dragend', () => { robotLayer.classList.remove('opacity-40'); draggedItem = null; });
-            robotLayer.addEventListener('click', (e) => { if (isSimulating) return; e.stopPropagation(); robotData.rotation += 90; updateRobotLayer(); });
-            robotLayer.addEventListener('dragover', (e) => { if (isSimulating) return; e.preventDefault(); });
-            robotLayer.addEventListener('drop', (e) => { if (isSimulating) return; e.preventDefault(); if (draggedItem && draggedItem.type !== 'robot') { if (robotData.index !== 'dock') { if (draggedItem.sourceIndex !== null) gridData[draggedItem.sourceIndex] = null; gridData[robotData.index] = { type: draggedItem.type, rotation: draggedItem.rotation || 0 }; renderGrid(); } } });
+            // Normal
+            const layerN = document.getElementById('robot-layer-n');
+            layerN.draggable = true;
+            layerN.addEventListener('dragstart', (e) => { if (isSimulating) return; draggedItem = { type: 'robot', sourceIndex: robotNormal.index, rotation: robotNormal.rotation, id: 'n' }; e.dataTransfer.setData('text/plain', 'robot'); setTimeout(() => layerN.classList.add('opacity-40'), 0); });
+            layerN.addEventListener('dragend', () => { layerN.classList.remove('opacity-40'); draggedItem = null; });
+            layerN.addEventListener('click', (e) => { if (isSimulating) return; e.stopPropagation(); robotNormal.rotation += 90; updateRobotLayer(); });
+
+            // Mixed
+            for(let i=0; i<2; i++) {
+                const layer = document.getElementById(`robot-layer-m${i}`);
+                layer.draggable = true;
+                layer.addEventListener('dragstart', (e) => { if (isSimulating) return; draggedItem = { type: 'robot', id: i, sourceIndex: robotsMixed[i].index, rotation: robotsMixed[i].rotation }; e.dataTransfer.setData('text/plain', 'robot'); setTimeout(() => layer.classList.add('opacity-40'), 0); });
+                layer.addEventListener('dragend', () => { layer.classList.remove('opacity-40'); draggedItem = null; });
+                layer.addEventListener('click', (e) => { if (isSimulating) return; e.stopPropagation(); robotsMixed[i].rotation = (robotsMixed[i].rotation + 90) % 360; if (i === 1) r2Rot = robotsMixed[i].rotation; updateRobotLayer(); });
+            }
         }
 
         function setupDockArea() {
-            const dockZone = document.getElementById('palette-robot-dock');
-            dockZone.addEventListener('dragover', (e) => { e.preventDefault(); if (draggedItem && draggedItem.type === 'robot') dockZone.classList.add('bg-blue-50', 'border-blue-400'); });
-            dockZone.addEventListener('dragleave', () => dockZone.classList.remove('bg-blue-50', 'border-blue-400'));
-            dockZone.addEventListener('drop', (e) => { e.preventDefault(); dockZone.classList.remove('bg-blue-50', 'border-blue-400'); if (draggedItem && draggedItem.type === 'robot') { robotData.index = 'dock'; robotData.rotation = draggedItem.rotation || 0; renderGrid(); } });
-            dockZone.addEventListener('dragstart', (e) => { if (isSimulating || robotData.index !== 'dock') { e.preventDefault(); return; } draggedItem = { type: 'robot', sourceIndex: 'dock', rotation: robotData.rotation }; e.dataTransfer.setData('text/plain', 'robot'); setTimeout(() => dockZone.classList.add('opacity-40'), 0); });
-            dockZone.addEventListener('dragend', () => { dockZone.classList.remove('opacity-40'); draggedItem = null; });
-            dockZone.addEventListener('click', (e) => { if (isSimulating || robotData.index !== 'dock') return; e.stopPropagation(); robotData.rotation += 90; updateRobotLayer(); });
+            // Normal
+            const dockN = document.getElementById('palette-dock-n');
+            dockN.addEventListener('dragover', (e) => { e.preventDefault(); if (draggedItem && draggedItem.type === 'robot' && draggedItem.id === 'n') dockN.classList.add('bg-blue-50', 'border-blue-400'); });
+            dockN.addEventListener('dragleave', () => dockN.classList.remove('bg-blue-50', 'border-blue-400'));
+            dockN.addEventListener('drop', (e) => { e.preventDefault(); dockN.classList.remove('bg-blue-50', 'border-blue-400'); if (draggedItem && draggedItem.type === 'robot' && draggedItem.id === 'n') { robotNormal.index = 'dock'; robotNormal.rotation = draggedItem.rotation || 0; renderGrid(); } });
+            dockN.addEventListener('dragstart', (e) => { if (isSimulating || robotNormal.index !== 'dock') return; draggedItem = { type: 'robot', id: 'n', sourceIndex: 'dock', rotation: robotNormal.rotation }; e.dataTransfer.setData('text/plain', 'robot'); setTimeout(() => dockN.classList.add('opacity-40'), 0); });
+            dockN.addEventListener('dragend', () => { dockN.classList.remove('opacity-40'); draggedItem = null; });
+            dockN.addEventListener('click', (e) => { if (isSimulating || robotNormal.index !== 'dock') return; e.stopPropagation(); robotNormal.rotation += 90; updateRobotLayer(); });
+
+            // Mixed
+            for(let i=0; i<2; i++) {
+                const dock = document.getElementById(`palette-dock-m${i}`);
+                dock.addEventListener('dragover', (e) => { e.preventDefault(); if (draggedItem && draggedItem.type === 'robot' && draggedItem.id === i) dock.classList.add('bg-blue-50', 'border-blue-400'); });
+                dock.addEventListener('dragleave', () => dock.classList.remove('bg-blue-50', 'border-blue-400'));
+                dock.addEventListener('drop', (e) => { e.preventDefault(); dock.classList.remove('bg-blue-50', 'border-blue-400'); if (draggedItem && draggedItem.type === 'robot' && draggedItem.id === i) { robotsMixed[i].index = 'dock'; robotsMixed[i].rotation = draggedItem.rotation || 0; if (i === 1) robotsMixed[1].holdingCan = null; renderGrid(); } });
+                dock.addEventListener('dragstart', (e) => { if (isSimulating || robotsMixed[i].index !== 'dock') return; draggedItem = { type: 'robot', id: i, sourceIndex: 'dock', rotation: robotsMixed[i].rotation }; e.dataTransfer.setData('text/plain', 'robot'); setTimeout(() => dock.classList.add('opacity-40'), 0); });
+                dock.addEventListener('dragend', () => { dock.classList.remove('opacity-40'); draggedItem = null; });
+                dock.addEventListener('click', (e) => { if (isSimulating || robotsMixed[i].index !== 'dock') return; e.stopPropagation(); robotsMixed[i].rotation += 90; updateRobotLayer(); });
+            }
         }
 
         function resetRobot() {
             if (isSimulating) return;
-            robotData = { index: 'dock', rotation: 0 };
-            droppedItems = []; 
-            currentScore = 0;
-            visitedCheckpoints.clear();
-            droppedZones.clear();
-            updateScoreUI();
+            resetGameStates(true);
             renderGrid();
         }
 
-        function checkRunCondition() {
+        window.checkRunCondition = function() {
             if (isSimulating) return;
             const btnRun = document.getElementById('btn-run');
-            const isReady = (robotData.index !== 'dock' && robotData.index !== null) && (gridData[robotData.index]?.type === 'start');
+            let isReady = false;
+
+            if (window.appMode === 'normal') {
+                isReady = (robotNormal.index !== 'dock' && robotNormal.index !== null) && (gridDataNormal[robotNormal.index]?.type === 'start');
+            } else {
+                let allPlaced = true;
+                for(let i=0; i < 2; i++) { if (robotsMixed[i].index === 'dock' || robotsMixed[i].index === null) allPlaced = false; }
+                isReady = allPlaced;
+            }
 
             if (window.isGuestMode) {
                 btnRun.className = "text-sm bg-slate-200 text-slate-400 px-5 py-2 rounded-lg flex items-center gap-1.5 font-bold transition-all shadow-sm cursor-not-allowed";
@@ -971,7 +1421,8 @@ BK();
                 btnRun.innerHTML = '<i class="ph-fill ph-play text-lg"></i> Run โปรแกรม'; btnRun.disabled = false;
             } else {
                 btnRun.className = "text-sm bg-slate-200 text-slate-400 px-5 py-2 rounded-lg flex items-center gap-1.5 font-bold transition-all shadow-sm cursor-not-allowed";
-                btnRun.innerHTML = '<i class="ph-fill ph-play text-lg"></i> รอวางหุ่นที่ START'; btnRun.disabled = true;
+                btnRun.innerHTML = window.appMode === 'normal' ? '<i class="ph-fill ph-play text-lg"></i> รอวางหุ่นที่ START' : '<i class="ph-fill ph-play text-lg"></i> รอวางหุ่นให้ครบ 2 ตัว'; 
+                btnRun.disabled = true;
             }
         }
 
@@ -979,7 +1430,17 @@ BK();
             const trashZone = document.getElementById('trash-zone');
             trashZone.addEventListener('dragover', (e) => { e.preventDefault(); if (draggedItem && draggedItem.sourceIndex !== null) trashZone.classList.add('trash-over'); });
             trashZone.addEventListener('dragleave', () => trashZone.classList.remove('trash-over'));
-            trashZone.addEventListener('drop', (e) => { e.preventDefault(); trashZone.classList.remove('trash-over'); if (draggedItem) { if (draggedItem.type === 'robot') { robotData.index = 'dock'; } else if (draggedItem.sourceIndex !== null) { gridData[draggedItem.sourceIndex] = null; } renderGrid(); } });
+            trashZone.addEventListener('drop', (e) => { 
+                e.preventDefault(); trashZone.classList.remove('trash-over'); 
+                if (draggedItem) { 
+                    if (draggedItem.type === 'robot') { 
+                        if (window.appMode === 'normal') { robotNormal.index = 'dock'; }
+                        else { robotsMixed[draggedItem.id].index = 'dock'; if(draggedItem.id === 1) robotsMixed[1].holdingCan = null; }
+                    } 
+                    else if (draggedItem.sourceIndex !== null) { getActiveGrid()[draggedItem.sourceIndex] = null; } 
+                    renderGrid(); 
+                } 
+            });
         }
 
         function parseCommands() {
@@ -988,49 +1449,80 @@ BK();
         }
 
         function startSimulation() {
-            initAudio(); // Initialize audio context on user interaction
+            initAudio(); 
             const commands = parseCommands();
             if (commands.length === 0) { showAlert("แจ้งเตือน", "ไม่มีคำสั่งให้ทำงาน! กรุณาเขียนคำสั่งเช่น go();"); return; }
 
             isSimulating = true;
-            droppedItems = []; 
-            currentScore = 0;
-            visitedCheckpoints.clear();
-            droppedZones.clear();
-            updateScoreUI();
-            
+            resetGameStates(false);
+
             document.getElementById('btn-run').classList.add('hidden');
             document.getElementById('btn-stop').classList.remove('hidden');
             document.getElementById('palette-section').classList.add('opacity-50', 'pointer-events-none');
+
+            if (window.appMode === 'normal') {
+                startSimNormal(commands);
+            } else {
+                startSimMixed(commands);
+            }
+        }
+
+        function startSimNormal(commands) {
+            renderGrid();
+            let cmdIndex = 0;
+            function nextStep() {
+                if (!isSimulating) return;
+                if (cmdIndex >= commands.length) {
+                    let currentCell = gridDataNormal[robotNormal.index];
+                    if (currentCell && currentCell.type === 'start') {
+                        currentScore += 10; updateScoreUI(); playSound('finish');
+                        setTimeout(() => { showAlert("ภารกิจสำเร็จ!", `หุ่นยนต์กลับถึงจุด START แล้ว\nคะแนนที่ได้ทั้งหมด: <b>${currentScore} คะแนน</b>`, "success"); stopSimulation(); }, 500);
+                    } else {
+                        setTimeout(() => { showAlert("สิ้นสุด", `จบการทำงานของโปรแกรม\n(ไม่ได้กลับมายังจุด START)\nคะแนนที่ได้ทั้งหมด: <b>${currentScore} คะแนน</b>`, "info"); stopSimulation(); }, 500);
+                    }
+                    return;
+                }
+                executeCommandNormal(commands[cmdIndex]);
+                cmdIndex++;
+                simulationTimer = setTimeout(nextStep, 700); 
+            }
+            setTimeout(nextStep, 500); 
+        }
+
+        function startSimMixed(commands) {
+            isAutoWaitingForBaton = true;
+            robotsMixed[1].holdingCan = 'can-gray';
+            robotsMixed[0].holdingCan = null;
+            
+            gridDataMixed.forEach((cell, idx) => {
+                if (cell && cell.type === 'can-4-m') activeCans4M[idx] = ['can-r', 'can-g', 'can-b', 'can-y'];
+                else if (cell && cell.type === 'zone-gray-m') activeGrayZonesM[idx] = [null, null, null, null];
+            });
+            
+            document.getElementById('c-code-editor').classList.add('hidden');
+            document.getElementById('manual-control-panel').classList.remove('hidden'); document.getElementById('manual-control-panel').classList.add('flex');
+            
+            const r1Layer = document.getElementById('robot-layer-m1'); const r1Inner = document.getElementById('robot-inner-m1');
+            r1Layer.style.transition = 'none'; r1Inner.style.transition = 'none';
+            
+            if (robotsMixed[1].index !== 'dock' && robotsMixed[1].index !== null) {
+                r2PosX = robotsMixed[1].index % 8; r2PosY = Math.floor(robotsMixed[1].index / 8); r2Rot = robotsMixed[1].rotation; r2Arm = 0;
+            }
+
             renderGrid();
 
             let cmdIndex = 0;
             function nextStep() {
                 if (!isSimulating) return;
+                if (isAutoWaitingForBaton) { simulationTimer = setTimeout(nextStep, 200); return; }
 
-                if (cmdIndex >= commands.length) {
-                    // จบการทำงาน ตรวจสอบว่ากลับมาที่จุด start หรือไม่
-                    let currentCell = gridData[robotData.index];
-                    if (currentCell && currentCell.type === 'start') {
-                        currentScore += 10;
-                        updateScoreUI();
-                        playSound('finish');
-                        setTimeout(() => {
-                            showAlert("ภารกิจสำเร็จ!", `หุ่นยนต์กลับถึงจุด START แล้ว\nคะแนนที่ได้ทั้งหมด: <b>${currentScore} คะแนน</b>`, "success");
-                            stopSimulation();
-                        }, 500);
-                    } else {
-                        setTimeout(() => {
-                            showAlert("สิ้นสุด", `จบการทำงานของโปรแกรม\n(ไม่ได้กลับมายังจุด START)\nคะแนนที่ได้ทั้งหมด: <b>${currentScore} คะแนน</b>`, "info");
-                            stopSimulation();
-                        }, 500);
-                    }
-                    return;
+                if (cmdIndex < commands.length) {
+                    executeCommandMixed(commands[cmdIndex]);
+                    cmdIndex++;
+                    if (isSimulating) simulationTimer = setTimeout(nextStep, 700); 
+                } else {
+                    checkWinConditionMixed(); return; 
                 }
-
-                executeCommand(commands[cmdIndex]);
-                cmdIndex++;
-                simulationTimer = setTimeout(nextStep, 700); 
             }
             setTimeout(nextStep, 500); 
         }
@@ -1038,77 +1530,290 @@ BK();
         function stopSimulation() {
             isSimulating = false;
             clearTimeout(simulationTimer);
+            if(window.appMode === 'mixed') stopManual();
+            
             document.getElementById('btn-stop').classList.add('hidden');
             document.getElementById('btn-run').classList.remove('hidden');
             document.getElementById('palette-section').classList.remove('opacity-50', 'pointer-events-none');
+            
+            document.getElementById('c-code-editor').classList.remove('hidden');
+            document.getElementById('manual-control-panel').classList.add('hidden'); document.getElementById('manual-control-panel').classList.remove('flex');
+            
+            if(window.appMode === 'mixed') {
+                const r1Layer = document.getElementById('robot-layer-m1'); const r1Inner = document.getElementById('robot-inner-m1');
+                r1Layer.style.transition = 'all 0.5s ease-in-out'; r1Inner.style.transition = 'transform 0.5s ease-in-out';
+            }
             renderGrid();
         }
 
-        function executeCommand(cmd) {
-            let idx = robotData.index;
+        function executeCommandNormal(cmd) {
+            let idx = robotNormal.index;
             if (idx === 'dock') return;
 
-            let direction = ((robotData.rotation % 360) + 360) % 360; 
-            let x = idx % 8;
-            let y = Math.floor(idx / 8);
+            let direction = ((robotNormal.rotation % 360) + 360) % 360; 
+            let x = idx % 8; let y = Math.floor(idx / 8);
 
-            if (cmd === 'go()') {
-                if (direction === 0) y -= 1; else if (direction === 90) x += 1; else if (direction === 180) y += 1; else if (direction === 270) x -= 1;
-            } else if (cmd === 'BK()') {
-                if (direction === 0) y += 1; else if (direction === 90) x -= 1; else if (direction === 180) y -= 1; else if (direction === 270) x += 1;
-            } else if (cmd === 'LL()') {
-                robotData.rotation -= 90; 
-            } else if (cmd === 'RR()') {
-                robotData.rotation += 90; 
-            } else if (cmd === 'JY()') {
-                if (!droppedItems.includes(idx)) {
-                    droppedItems.push(idx);
-                    
-                    // ให้คะแนนถ้าตรงกับจุดปล่อย (zone-g, zone-r, zone-b, zone-y)
-                    let currentCell = gridData[idx];
-                    if (currentCell && currentCell.type.startsWith('zone-') && !droppedZones.has(idx)) {
-                        droppedZones.add(idx);
-                        currentScore += 20;
-                        playSound('drop');
-                        updateScoreUI();
+            if (cmd === 'go()') { if (direction === 0) y -= 1; else if (direction === 90) x += 1; else if (direction === 180) y += 1; else if (direction === 270) x -= 1; } 
+            else if (cmd === 'BK()') { if (direction === 0) y += 1; else if (direction === 90) x -= 1; else if (direction === 180) y -= 1; else if (direction === 270) x += 1; } 
+            else if (cmd === 'LL()') { robotNormal.rotation -= 90; } 
+            else if (cmd === 'RR()') { robotNormal.rotation += 90; } 
+            else if (cmd === 'JY()') {
+                if (!droppedItemsNormal.includes(idx)) {
+                    droppedItemsNormal.push(idx);
+                    let currentCell = gridDataNormal[idx];
+                    if (currentCell && currentCell.type.startsWith('zone-') && !droppedZonesN.has(idx)) {
+                        droppedZonesN.add(idx); currentScore += 20; playSound('drop'); updateScoreUI();
                     }
-                    
-                    renderGrid(); 
-                    return; 
+                    renderGrid(); return; 
                 }
             }
 
             if (cmd === 'go()' || cmd === 'BK()') {
                 if (x >= 0 && x < 8 && y >= 0 && y < 4) {
-                    robotData.index = y * 8 + x;
-                    
-                    // ให้คะแนนเมื่อเดินผ่านจุดเช็คพอยต์ (ครั้งแรกเท่านั้นในแต่ละจุด)
-                    let newCell = gridData[robotData.index];
-                    if (newCell && newCell.type.startsWith('cp-') && !visitedCheckpoints.has(robotData.index)) {
-                        visitedCheckpoints.add(robotData.index);
-                        currentScore += 5;
-                        playSound('checkpoint');
-                        updateScoreUI();
+                    robotNormal.index = y * 8 + x;
+                    let newCell = gridDataNormal[robotNormal.index];
+                    if (newCell && newCell.type.startsWith('cp-') && !visitedCheckpointsN.has(robotNormal.index)) {
+                        visitedCheckpointsN.add(robotNormal.index); currentScore += 5; playSound('checkpoint'); updateScoreUI();
                     }
-
                 } else {
-                    playSound('error');
-                    showAlert("เกิดข้อผิดพลาด", `⚠️ หุ่นยนต์วิ่งตกขอบสนาม! โปรแกรมหยุดทำงาน\nคะแนนรวม: ${currentScore} คะแนน`, "error");
-                    isSimulating = false; 
+                    playSound('error'); showAlert("เกิดข้อผิดพลาด", `⚠️ หุ่นยนต์วิ่งตกขอบสนาม! โปรแกรมหยุดทำงาน\nคะแนนรวม: ${currentScore} คะแนน`, "error"); isSimulating = false; 
                 }
             }
             updateRobotLayer(); 
         }
 
+        function executeCommandMixed(cmd) {
+            let errorOccurred = false;
+            let robotData = robotsMixed[0];
+            let idx = robotData.index;
+            if (idx === 'dock' || idx === null) return;
+
+            let direction = ((robotData.rotation % 360) + 360) % 360; 
+            let x = idx % 8; let y = Math.floor(idx / 8);
+            let moved = false; let moveDir = -1;
+
+            if (cmd === 'go()') { if (direction === 0) { y -= 1; moveDir = 0; } else if (direction === 90) { x += 1; moveDir = 90; } else if (direction === 180) { y += 1; moveDir = 180; } else if (direction === 270) { x -= 1; moveDir = 270; } moved = true; } 
+            else if (cmd === 'BK()') { if (direction === 0) { y += 1; moveDir = 180; } else if (direction === 90) { x -= 1; moveDir = 270; } else if (direction === 180) { y -= 1; moveDir = 0; } else if (direction === 270) { x += 1; moveDir = 90; } moved = true; } 
+            else if (cmd === 'LL()') { robotData.rotation -= 90; } 
+            else if (cmd === 'RR()') { robotData.rotation += 90; } 
+            else if (cmd === 'JY()' || cmd === 'JY_HALF()') {
+                if (robotData.holdingCan) {
+                    let isHalfwayBonus = (cmd === 'JY_HALF()'); let bonus = isHalfwayBonus ? 50 : 0; 
+                    
+                    let targetX = x; let targetY = y;
+                    if (direction === 0) targetY -= 1; 
+                    else if (direction === 90) targetX += 1; 
+                    else if (direction === 180) targetY += 1; 
+                    else if (direction === 270) targetX -= 1;
+
+                    if (targetX >= 0 && targetX < 8 && targetY >= 0 && targetY < 4) {
+                        let targetIdx = targetY * 8 + targetX;
+                        let targetCell = gridDataMixed[targetIdx];
+
+                        if (targetCell && targetCell.type === 'zone-gray-m') {
+                            if (!activeGrayZonesM[targetIdx]) activeGrayZonesM[targetIdx] = [null, null, null, null];
+                            let emptyQuad = activeGrayZonesM[targetIdx].findIndex(v => v === null);
+                            if(emptyQuad !== -1) {
+                                activeGrayZonesM[targetIdx][emptyQuad] = robotData.holdingCan; currentScore += (10 + bonus); updateScoreUI(); playSound('finish');
+                            } else { playSound('error'); }
+                        } else {
+                            boardCansM.push({ index: targetIdx, type: robotData.holdingCan, quad: 0 });
+                            if (bonus > 0) { currentScore += bonus; updateScoreUI(); } playSound('drop');
+                        }
+                        robotData.holdingCan = null; renderGrid(); 
+                    } else {
+                        playSound('error');
+                    }
+                }
+            }
+
+            if (moved) {
+                if (x >= 0 && x < 8 && y >= 0 && y < 4) {
+                    let newIdx = y * 8 + x;
+                    if (moveDir !== -1) {
+                        let checkCell = (cellIdx, isEntering) => {
+                            let cell = gridDataMixed[cellIdx]; if (!cell) return false;
+                            let allowedDirs = [];
+                            if (cell.type === 'can-4-m') allowedDirs = [90]; 
+                            else if (cell.type === 'blank-m' || cell.type === 'blank-blue-m') allowedDirs = [90, 270]; 
+                            else return false;
+                            let actualAllowedDirs = allowedDirs.map(d => (d + cell.rotation) % 360);
+                            let reqDir = isEntering ? actualAllowedDirs.map(d => (d + 180) % 360) : actualAllowedDirs;
+                            return !reqDir.includes(moveDir);
+                        };
+                        if (checkCell(robotData.index, false) || checkCell(newIdx, true)) {
+                            currentScore -= 2; updateScoreUI(); playSound('error');
+                        }
+                    }
+                    robotData.index = newIdx;
+                    let newCell = gridDataMixed[robotData.index];
+                    if (newCell && newCell.type === 'obstacle-m') errorOccurred = true;
+                    else if (newCell && newCell.type === 'can-4-m') {
+                        currentScore -= 5; updateScoreUI(); playSound('error');
+                    }
+                } else { errorOccurred = true; }
+            }
+
+            if (robotsMixed[0].index === robotsMixed[1].index && robotsMixed[0].index !== 'dock') {
+                let cell = gridDataMixed[robotsMixed[0].index];
+                if (!cell || cell.type !== 'start') { playSound('error'); showAlert("เกิดข้อผิดพลาด", `⚠️ หุ่นยนต์ชนกัน! โปรแกรมหยุดทำงาน\nคะแนนรวม: ${currentScore} คะแนน`, "error"); isSimulating = false; }
+            } else if (errorOccurred) {
+                playSound('error'); showAlert("เกิดข้อผิดพลาด", `⚠️ หุ่นยนต์วิ่งตกขอบหรือเหยียบพื้นที่ห้ามผ่าน! โปรแกรมหยุดทำงาน\nคะแนนรวม: ${currentScore} คะแนน`, "error"); isSimulating = false; 
+            }
+            updateRobotLayer(); 
+        }
+
+        function checkWinConditionMixed() {
+            let r0Cell = gridDataMixed[robotsMixed[0].index];
+            let r1Cell = gridDataMixed[robotsMixed[1].index];
+            if (r0Cell && r0Cell.type === 'start' && r1Cell && r1Cell.type === 'start') {
+                currentScore += 20; updateScoreUI(); playSound('finish');
+                setTimeout(() => { showAlert("ภารกิจสำเร็จ!", `หุ่นยนต์ทั้ง 2 ตัวกลับถึงจุด START แล้ว\nคะแนนที่ได้ทั้งหมด: <b>${currentScore} คะแนน</b>`, "success"); stopSimulation(); }, 500);
+            }
+        }
+
+        // ==========================================
+        // ระบบควบคุมแบบต่อเนื่อง (Manual Control) สำหรับโหมดผสม
+        // ==========================================
+        window.startManual = function(cmd) { if (!isSimulating || window.appMode !== 'mixed') return; manualState = cmd; if (!manualLoopId) manualLoopId = requestAnimationFrame(manualUpdateLoop); };
+        window.stopManual = function() { manualState = null; if (manualLoopId) { cancelAnimationFrame(manualLoopId); manualLoopId = null; } };
+
+        function manualUpdateLoop() {
+            if (!manualState || !isSimulating || window.appMode !== 'mixed') { manualLoopId = null; return; }
+            let rData = robotsMixed[1]; if (rData.index === 'dock' || rData.index === null) { manualLoopId = null; return; }
+
+            const moveSpeed = 0.025; const turnSpeed = 1.5; const armSpeed = 2.5; let moved = false;
+
+            if (manualState === 'go') { r2PosX += Math.sin(r2Rot * Math.PI / 180) * moveSpeed; r2PosY -= Math.cos(r2Rot * Math.PI / 180) * moveSpeed; moved = true; } 
+            else if (manualState === 'bk') { r2PosX -= Math.sin(r2Rot * Math.PI / 180) * moveSpeed; r2PosY += Math.cos(r2Rot * Math.PI / 180) * moveSpeed; moved = true; } 
+            else if (manualState === 'll') { r2Rot -= turnSpeed; } 
+            else if (manualState === 'rr') { r2Rot += turnSpeed; } 
+            else if (manualState === 'arm_out') { r2Arm = Math.min(150, r2Arm + armSpeed); } 
+            else if (manualState === 'arm_in') { r2Arm = Math.max(0, r2Arm - armSpeed); }
+
+            r2PosX = Math.max(0, Math.min(7, r2PosX)); r2PosY = Math.max(0, Math.min(3, r2PosY));
+            let currentGridX = Math.round(r2PosX); let currentGridY = Math.round(r2PosY);
+
+            if (currentGridX >= 0 && currentGridX < 8 && currentGridY >= 0 && currentGridY < 4) {
+                let newIdx = currentGridY * 8 + currentGridX;
+                if (newIdx !== rData.index) {
+                    let oldX = rData.index % 8; let oldY = Math.floor(rData.index / 8);
+                    let moveDirX = currentGridX > oldX ? 90 : (currentGridX < oldX ? 270 : -1);
+                    let moveDirY = currentGridY > oldY ? 180 : (currentGridY < oldY ? 0 : -1);
+                
+                let checkCell = (cellIdx, isEntering) => {
+                    let cell = gridDataMixed[cellIdx]; if (!cell) return false;
+                    let allowedDirs = [];
+                    if (cell.type === 'can-4-m') allowedDirs = [90]; 
+                    else if (cell.type === 'blank-m' || cell.type === 'blank-blue-m') allowedDirs = [90, 270]; 
+                    else return false;
+                    let actualAllowedDirs = allowedDirs.map(d => (d + cell.rotation) % 360);
+                    let reqDir = isEntering ? actualAllowedDirs.map(d => (d + 180) % 360) : actualAllowedDirs;
+                    let invalidX = moveDirX !== -1 ? !reqDir.includes(moveDirX) : false;
+                    let invalidY = moveDirY !== -1 ? !reqDir.includes(moveDirY) : false;
+                    if (moveDirX !== -1 && moveDirY === -1) return invalidX; if (moveDirY !== -1 && moveDirX === -1) return invalidY;
+                    if (moveDirX !== -1 && moveDirY !== -1) return invalidX && invalidY; return false;
+                };
+
+                if (checkCell(rData.index, false) || checkCell(newIdx, true)) {
+                    currentScore -= 2; updateScoreUI(); playSound('error');
+                }
+                rData.index = newIdx;
+                
+                let newlyEnteredCell = gridDataMixed[newIdx];
+                if (newlyEnteredCell && newlyEnteredCell.type === 'can-4-m') {
+                    currentScore -= 5; updateScoreUI(); playSound('error');
+                }
+            }
+        } else { playSound('error'); showAlert("เกิดข้อผิดพลาด", `⚠️ หุ่นยนต์บังคับมือวิ่งตกขอบสนาม! โปรแกรมหยุดทำงาน\nคะแนนรวม: ${currentScore} คะแนน`, "error"); stopSimulation(); return; }
+
+        if (moved) {
+                let newCell = gridDataMixed[rData.index];
+                if (newCell && newCell.type === 'obstacle-m') { playSound('error'); showAlert("เกิดข้อผิดพลาด", `⚠️ หุ่นเหยียบพื้นที่ห้ามผ่าน! โปรแกรมหยุดทำงาน\nคะแนนรวม: ${currentScore} คะแนน`, "error"); stopSimulation(); return; }
+            }
+
+            if (robotsMixed[0].index === rData.index && robotsMixed[0].index !== 'dock') {
+                let cell = gridDataMixed[rData.index];
+                if (!cell || cell.type !== 'start') { playSound('error'); showAlert("เกิดข้อผิดพลาด", `⚠️ หุ่นยนต์ชนกัน! โปรแกรมหยุดทำงาน\nคะแนนรวม: ${currentScore} คะแนน`, "error"); stopSimulation(); return; }
+            }
+
+            updateRobotLayer(); checkWinConditionMixed();
+            if (manualState) manualLoopId = requestAnimationFrame(manualUpdateLoop);
+        }
+
+        window.manualJY = function() {
+            if (!isSimulating || window.appMode !== 'mixed') return;
+            let robotData = robotsMixed[1];
+            
+            let d = 0.4 + (r2Arm / 100) * 0.8;
+            let tipX = r2PosX + Math.sin(r2Rot * Math.PI / 180) * d; let tipY = r2PosY - Math.cos(r2Rot * Math.PI / 180) * d;
+            let targetX = Math.round(tipX); let targetY = Math.round(tipY);
+            if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 3) { playSound('error'); return; }
+
+            let targetIdx = targetY * 8 + targetX; let relX = tipX - targetX; let relY = tipY - targetY;
+
+            if (robotData.holdingCan === 'can-gray' && targetIdx === robotsMixed[0].index && isAutoWaitingForBaton) {
+                robotData.holdingCan = null; robotsMixed[0].holdingCan = 'can-gray'; isAutoWaitingForBaton = false; 
+                playSound('finish'); renderGrid(); updateRobotLayer(); return;
+            }
+
+            let physicalQuad = 0;
+            if (relX < 0 && relY < 0) physicalQuad = 0; else if (relX >= 0 && relY < 0) physicalQuad = 1; else if (relX < 0 && relY >= 0) physicalQuad = 2; else if (relX >= 0 && relY >= 0) physicalQuad = 3; 
+
+            let cell = gridDataMixed[targetIdx]; let logicalQuad = physicalQuad;
+            if (cell) {
+                let rot = cell.rotation || 0;
+                if (rot === 90) { logicalQuad = physicalQuad===0?2 : physicalQuad===1?0 : physicalQuad===2?3 : 1; } 
+                else if (rot === 180) { logicalQuad = physicalQuad===0?3 : physicalQuad===1?2 : physicalQuad===2?1 : 0; } 
+                else if (rot === 270) { logicalQuad = physicalQuad===0?1 : physicalQuad===1?3 : physicalQuad===2?0 : 2; }
+            }
+
+            if (robotData.holdingCan) {
+                let isArmHalfway = (r2Arm >= 50 && r2Arm <= 110); let bonusScore = isArmHalfway ? 50 : 0;
+                if (cell && cell.type === 'zone-gray-m') {
+                    if (!activeGrayZonesM[targetIdx]) activeGrayZonesM[targetIdx] = [null, null, null, null];
+                    if (!activeGrayZonesM[targetIdx][logicalQuad]) { 
+                        activeGrayZonesM[targetIdx][logicalQuad] = robotData.holdingCan; currentScore += (10 + bonusScore); updateScoreUI(); playSound('finish');
+                        if (bonusScore > 0) showAlert("โบนัสยืดแขน!", "วางกระป๋องโดยยืดแขนครึ่งหนึ่ง ได้คะแนนพิเศษ +50", "success");
+                        robotData.holdingCan = null;
+                    } else { playSound('error'); }
+                } else {
+                    boardCansM.push({ index: targetIdx, type: robotData.holdingCan, quad: physicalQuad });
+                    if (bonusScore > 0) { currentScore += bonusScore; updateScoreUI(); showAlert("โบนัสยืดแขน!", "วางกระป๋องโดยยืดแขนครึ่งหนึ่ง ได้คะแนนพิเศษ +50", "success"); }
+                    playSound('drop'); robotData.holdingCan = null;
+                }
+            } else {
+                let grabbed = false;
+                if (cell && cell.type === 'can-4-m' && activeCans4M[targetIdx]) {
+                    const quadToCan = {0: 'can-r', 1: 'can-g', 2: 'can-b', 3: 'can-y'}; let targetCan = quadToCan[logicalQuad];
+                    if (!activeCans4M[targetIdx].includes(targetCan)) { if (activeCans4M[targetIdx].includes('can-y')) targetCan = 'can-y'; else if (activeCans4M[targetIdx].length > 0) targetCan = activeCans4M[targetIdx][0]; }
+                    if (activeCans4M[targetIdx].includes(targetCan)) {
+                        robotData.holdingCan = targetCan; activeCans4M[targetIdx] = activeCans4M[targetIdx].filter(c => c !== targetCan); playSound('drop'); grabbed = true;
+                    }
+                } else if (cell && cell.type === 'zone-gray-m' && activeGrayZonesM[targetIdx]) {
+                    if (activeGrayZonesM[targetIdx][logicalQuad]) { robotData.holdingCan = activeGrayZonesM[targetIdx][logicalQuad]; activeGrayZonesM[targetIdx][logicalQuad] = null; currentScore -= 10; updateScoreUI(); playSound('drop'); grabbed = true; }
+                }
+                if (!grabbed) {
+                    let foundCanIdx = boardCansM.findIndex(c => c.index === targetIdx && c.quad === physicalQuad);
+                    if (foundCanIdx === -1) foundCanIdx = boardCansM.findIndex(c => c.index === targetIdx);
+                    if (foundCanIdx !== -1) { robotData.holdingCan = boardCansM[foundCanIdx].type; boardCansM.splice(foundCanIdx, 1); playSound('drop'); } 
+                    else { playSound('drop'); }
+                }
+            }
+            renderGrid(); updateRobotLayer();
+        };
+
         function clearBoard() {
             if (confirm('ล้างข้อมูลสนามทั้งหมดใช่หรือไม่? (ไม่รวมโค้ดและหุ่นยนต์)')) {
-                gridData = Array(32).fill(null); gridData[27] = { type: 'start', rotation: 0 }; droppedItems = []; currentScore = 0; updateScoreUI(); renderGrid();
+                if (window.appMode === 'normal') { gridDataNormal = JSON.parse(JSON.stringify(defaultNormalGrid)); } 
+                else { gridDataMixed = JSON.parse(JSON.stringify(defaultMixedGrid)); }
+                resetGameStates(false); renderGrid();
             }
         }
 
         function saveField() {
-            const saveData = { grid: gridData }; const blob = new Blob([JSON.stringify(saveData)], { type: "application/json" }); const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = "robot_field_data.json"; document.body.appendChild(a); a.click();
+            const saveData = { grid: getActiveGrid(), mode: window.appMode }; const blob = new Blob([JSON.stringify(saveData)], { type: "application/json" }); const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `robot_field_${window.appMode}.json`; document.body.appendChild(a); a.click();
             setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 0);
         }
 
@@ -1118,8 +1823,11 @@ BK();
             reader.onload = function(e) {
                 try {
                     const parsedData = JSON.parse(e.target.result);
-                    if (parsedData.grid) { gridData = parsedData.grid; } else if (Array.isArray(parsedData) && parsedData.length === 32) { gridData = parsedData; }
-                    droppedItems = []; currentScore = 0; updateScoreUI(); renderGrid();
+                    let newGrid = parsedData.grid || (Array.isArray(parsedData) && parsedData.length === 32 ? parsedData : null);
+                    if(newGrid) {
+                        if (window.appMode === 'normal') gridDataNormal = newGrid; else gridDataMixed = newGrid;
+                        resetGameStates(true); renderGrid();
+                    } else { throw new Error('Invalid format'); }
                 } catch (error) { showAlert('เกิดข้อผิดพลาด', 'รูปแบบไฟล์สนามไม่ถูกต้อง', 'error'); }
                 event.target.value = ''; 
             };
@@ -1132,7 +1840,15 @@ BK();
             setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 0);
         }
 
+        function init() {
+            setupRobotLayerEvents();
+            setupTrashArea();
+            setupDockArea();
+        }
+
         init();
+        renderAllPalettes();
+        setAppMode('normal'); // โหลดหน้าครั้งแรกด้วยโหมดออโต้ปกติ
     </script>
 </body>
 </html>
